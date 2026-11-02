@@ -1,0 +1,36 @@
+# Rust
+/target
+**/target
+*.rs.bk
+
+# Node
+node_modules
+/ui/dist
+/ui/.vite
+pnpm-debug.log*
+
+# Tauri
+/apps/desktop/target
+/apps/desktop/gen
+
+# Данные приложения (не в репозиторий)
+*.db
+*.db-wal
+*.db-shm
+*.db.corrupt-*
+*.db.bak-*
+
+# Фикстуры миграций — тестовые данные, а не рабочая БД
+!crates/vela-core/migrations/fixtures/*.db
+
+# Замеры
+/bench/out
+/*.png
+!docs/**/*.png
+
+# ОС и редакторы
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

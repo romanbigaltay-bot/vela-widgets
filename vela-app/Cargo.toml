@@ -1,0 +1,64 @@
+[workspace]
+resolver = "2"
+members = ["apps/desktop", "crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+license = "UNLICENSED"
+authors = ["Vela"]
+
+[workspace.dependencies]
+# домен
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+# данные
+rusqlite = { version = "0.32", features = ["bundled"] }
+# типы для TS
+ts-rs = "10"
+# тесты
+proptest = "1"
+tempfile = "3"
+
+# крейты проекта
+vela-core = { path = "crates/vela-core" }
+vela-ipc = { path = "crates/vela-ipc" }
+vela-platform = { path = "crates/vela-platform" }
+vela-cron = { path = "crates/vela-cron" }
+
+# ---------------------------------------------------------------------------
+# Линты объявляются один раз здесь и наследуются каждым крейтом
+# через `[lints] workspace = true` в его Cargo.toml.
+#
+# Почему не «включить clippy::pedantic целиком»: педантичный набор даёт
+# десятки предупреждений о стиле (module_name_repetitions, must_use_candidate)
+# и линты перестают читать. Здесь только то, что ловит реальные дефекты.
+# ---------------------------------------------------------------------------
+[workspace.lints.rust]
+unsafe_code = "deny"
+unused_must_use = "deny"
+unreachable_pub = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+# `unwrap()` в рантайме — это паника вместо ошибки. В тестах разрешён
+# через `#[allow]` на модуле.
+unwrap_used = "deny"
+# expect() разрешён, но обязан нести сообщение об инварианте.
+expect_used = "warn"
+# Числовые приведения без проверки — источник тихих багов в геометрии.
+cast_possible_truncation = "warn"
+cast_sign_loss = "warn"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = "symbols"
+panic = "abort"

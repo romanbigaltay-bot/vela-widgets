@@ -1,0 +1,19 @@
+[package]
+name = "vela-cron"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+# Парсер и планировщик cron. Живёт отдельно от UI и от платформы:
+# одна и та же логика нужна и в Rust-потоке (исполнение), и в UI (предпросмотр),
+# см. ADR-0007.
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+
+[lints]
+workspace = true

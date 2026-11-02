@@ -1,0 +1,25 @@
+{
+  "$comment": "Единый источник истины о каталоге контрактов UI. Читают: tests/contract_sync.rs, tests/export_bindings.rs, ui/scripts/ipc-gen.mjs. Добавили рукописный файл — добавьте здесь и больше нигде.",
+  "dir": "ui/src/shared/api",
+  "generated": [
+    "ElementId.ts",
+    "Envelope.ts",
+    "ErrorCode.ts",
+    "MonitorId.ts",
+    "ProfileId.ts",
+    "VelaError.ts",
+    "WidgetId.ts"
+  ],
+  "handwritten": [
+    "client.test.ts",
+    "client.ts",
+    "commands.ts",
+    "events.test.ts",
+    "events.ts",
+    "index.ts",
+    "transport.ts",
+    "useEvent.test.ts",
+    "useEvent.ts",
+    "version.ts"
+  ]
+}

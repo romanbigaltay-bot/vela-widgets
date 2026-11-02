@@ -1,0 +1,22 @@
+[package]
+name = "vela-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+# Домен: типы, БД, миграции. ЗАПРЕЩЕНО добавлять сюда tauri/windows —
+# правило проверяется тестом tests/manifest_rules.rs и шагом CI arch-check.
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+rusqlite = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+proptest = { workspace = true }
+
+[lints]
+workspace = true

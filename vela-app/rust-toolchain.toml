@@ -1,0 +1,5 @@
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy"]
+# Версия зафиксирована каналом stable + rust-version в workspace.package.
+# Для воспроизводимой сборки релиза версия дублируется в CI-матрице.

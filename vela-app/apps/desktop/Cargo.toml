@@ -1,0 +1,28 @@
+[package]
+name = "vela"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "vela"
+path = "src/main.rs"
+
+[dependencies]
+vela-core = { workspace = true }
+vela-ipc = { workspace = true }
+vela-platform = { workspace = true }
+vela-cron = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Tauri подключается в T-0201/ST-0201-01 вместе с первым окном.
+# В P1 бинарь собирает только каркас приложения (инициализация логирования,
+# проверка версии схемы БД), чтобы G1 не зависел от графического стека.
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = ["Win32_Foundation"] }
+
+[lints]
+workspace = true

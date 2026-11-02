@@ -1,0 +1,100 @@
+name: ci
+
+# Пайплайн из 00-conventions/05-testing.md, сокращённый до того, что
+# реально существует в P1: линты, формат, типы, unit-тесты, архитектурные
+# запреты. Сборка бандла и e2e добавятся в ST-0101-04 по мере появления
+# окна (T-0201) — сейчас собирать нечего.
+#
+# Linux-раннер выбран осознанно: vela-core, vela-ipc, vela-cron и весь UI
+# собираются без Win32, значит быстрый фидбэк дешевле. Windows-джоба
+# появится в P2, когда появятся поверхности.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  # Предупреждения clippy не должны копиться: они либо исправляются, либо
+  # осознанно отключаются в Cargo.toml.
+  RUSTFLAGS: -D warnings
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: fmt
+        run: cargo fmt --all --check
+
+      - name: clippy
+        run: cargo clippy --workspace --all-targets
+
+      - name: test
+        run: cargo test --workspace
+
+      - name: arch-check
+        run: bash scripts/arch-check.sh
+
+  ui:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ui
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: ui/pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: typecheck
+        run: pnpm typecheck
+
+      - name: lint
+        run: pnpm lint
+
+      - name: format
+        run: pnpm format:check
+
+      - name: test
+        run: pnpm test
+
+  ipc-contracts:
+    # Отдельная джоба: контракты TS должны совпадать с Rust-типами.
+    # Разъезд ловится здесь, а не в рантайме у пользователя.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: ui/pnpm-lock.yaml
+      - run: pnpm --dir ui install --frozen-lockfile
+
+      - name: regenerate and compare
+        run: pnpm --dir ui ipc:check

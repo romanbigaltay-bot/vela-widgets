@@ -1,0 +1,7 @@
+# Prettier не должен трогать то, что пишут другие инструменты.
+# pnpm-lock.yaml — машиночитаемый файл с фиксированным форматом: правки
+# ломают `--frozen-lockfile` и создают шум в диффах.
+pnpm-lock.yaml
+dist/
+node_modules/
+src/shared/api/*.ts

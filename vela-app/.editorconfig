@@ -1,0 +1,22 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# Всё, что относится к фронтенду, включая .mjs/.cjs, — 2 пробела.
+# Prettier читает .editorconfig и иначе берёт 4 для scripts/*.mjs,
+# из-за чего `prettier --check` расходится с `eslint`, а `--write`
+# переформатирует скрипты против конвенции проекта.
+[*.{ts,tsx,js,jsx,mjs,cjs,json,yml,yaml,css,html,md}]
+indent_size = 2
+
+[*.rs]
+indent_size = 4
+
+[*.md]
+trim_trailing_whitespace = false

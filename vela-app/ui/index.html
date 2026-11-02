@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Тема ставится до загрузки бандла, иначе первый кадр будет белым
+         (ST-0103-02, AC-1). Инлайн-скрипт намеренно крошечный и без зависимостей. -->
+    <meta name="color-scheme" content="dark light" />
+    <title>Vela</title>
+    <script>
+      // Тема применяется до первого кадра. Значение приходит из настроек
+      // (позже — из SQLite через Rust); пока — localStorage и системная тема.
+      (function () {
+        try {
+          var saved = localStorage.getItem('vela.theme');
+          var mode =
+            saved ||
+            (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+          document.documentElement.dataset.theme = mode;
+        } catch (e) {
+          document.documentElement.dataset.theme = 'dark';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/app/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+# ОС и редакторы
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Локальное окружение
+.env
+.env.local
+
+# Замеры (появятся в T-0802)
+bench/out/
+
+# Рабочие БД приложения. Фикстуры миграций переопределены в vela-app/.gitignore
+*.db
+*.db-wal
+*.db-shm
+*.db.corrupt-*
+*.db.bak-*

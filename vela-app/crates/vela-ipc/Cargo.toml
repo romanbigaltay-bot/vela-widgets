@@ -1,0 +1,25 @@
+[package]
+name = "vela-ipc"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+# Контракты между Rust и UI. ЗАПРЕЩЕНО: tauri, windows — иначе типы нельзя
+# использовать в тестах домена и в кодогенерации без графической среды.
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+ts-rs = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+tempfile = { workspace = true }
+
+[features]
+# Включается только в тесте экспорта, чтобы обычная сборка не писала файлы.
+ts-export = []
+
+[lints]
+workspace = true

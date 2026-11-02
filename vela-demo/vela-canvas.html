@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark" data-scene="aurora">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vela — canvas prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============ tokens ============ */
+:root{
+  --font:"Inter Tight","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
+  --r-panel:16px; --r-item:10px; --r-chip:999px;
+  --blur:28px;
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+html[data-theme="dark"]{
+  --bg:#0A0B0D;
+  --panel:rgba(255,255,255,.045);
+  --panel-hi:rgba(255,255,255,.075);
+  --stroke:rgba(255,255,255,.08);
+  --stroke-hi:rgba(255,255,255,.16);
+  --text:#E8EAED;
+  --text-dim:#9DA4AE;
+  --text-faint:#7C858F;
+  --accent:#7A9BFF;
+  --accent-2:#9F7AFF;
+  --accent-soft:rgba(122,155,255,.14);
+  --track:rgba(255,255,255,.07);
+  --inner:inset 0 1px 0 rgba(255,255,255,.06);
+  --shadow:0 1px 2px rgba(0,0,0,.28), 0 14px 40px -14px rgba(0,0,0,.65);
+  --shadow-hi:0 1px 2px rgba(0,0,0,.35), 0 22px 60px -16px rgba(0,0,0,.75), 0 0 0 1px rgba(122,155,255,.18);
+  --grid:rgba(255,255,255,.085);
+  --grain:.05;
+}
+html[data-theme="light"]{
+  --bg:#F6F7F9;
+  --panel:rgba(255,255,255,.66);
+  --panel-hi:rgba(255,255,255,.85);
+  --stroke:rgba(12,16,24,.075);
+  --stroke-hi:rgba(12,16,24,.16);
+  --text:#14171C;
+  --text-dim:#4E555F;
+  --text-faint:#6E7681;
+  --accent:#4F6FE8;
+  --accent-2:#7B5BE0;
+  --accent-soft:rgba(79,111,232,.10);
+  --track:rgba(12,16,24,.08);
+  --inner:inset 0 1px 0 rgba(255,255,255,.9);
+  --shadow:0 1px 2px rgba(16,24,40,.06), 0 14px 40px -18px rgba(16,24,40,.30);
+  --shadow-hi:0 1px 2px rgba(16,24,40,.08), 0 22px 60px -20px rgba(16,24,40,.35), 0 0 0 1px rgba(79,111,232,.22);
+  --grid:rgba(12,16,24,.10);
+  --grain:.03;
+}
+
+/* ============ base ============ */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--font); background:var(--bg); color:var(--text);
+  overflow:hidden; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  font-variant-numeric:tabular-nums; font-weight:400;
+  transition:background .5s var(--ease), color .35s var(--ease);
+  user-select:none;
+}
+button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input{font-family:inherit}
+
+/* ============ scene (L0) ============ */
+#scene{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--bg)}
+.blob{position:absolute;border-radius:50%;filter:blur(90px);will-change:transform;transition:opacity .6s}
+html[data-theme="dark"] .b1{background:#1b2a52;opacity:.5;width:60vw;height:60vw;left:-12vw;top:-18vw}
+html[data-theme="dark"] .b2{background:#2f1f4e;opacity:.42;width:52vw;height:52vw;right:-14vw;top:-6vw}
+html[data-theme="dark"] .b3{background:#123a3d;opacity:.46;width:64vw;height:64vw;left:18vw;bottom:-32vw}
+html[data-theme="light"] .b1{background:#cfd9ff;opacity:.75;width:60vw;height:60vw;left:-12vw;top:-18vw}
+html[data-theme="light"] .b2{background:#e3d3ff;opacity:.6;width:52vw;height:52vw;right:-14vw;top:-6vw}
+html[data-theme="light"] .b3{background:#c9ecf2;opacity:.6;width:64vw;height:64vw;left:18vw;bottom:-32vw}
+.b1{animation:drift1 34s var(--ease) infinite alternate}
+.b2{animation:drift2 44s var(--ease) infinite alternate}
+.b3{animation:drift3 52s var(--ease) infinite alternate}
+@keyframes drift1{to{transform:translate3d(8vw,6vh,0) scale(1.15)}}
+@keyframes drift2{to{transform:translate3d(-7vw,9vh,0) scale(1.1)}}
+@keyframes drift3{to{transform:translate3d(4vw,-8vh,0) scale(1.08)}}
+
+html[data-scene="void"] .blob{opacity:.12}
+html[data-scene="mesh"] .blob{filter:blur(70px)}
+html[data-scene="mesh"] .b2{opacity:.62}
+html[data-scene="off"] .blob{opacity:0}
+
+#vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 0%, transparent 40%, rgba(0,0,0,.42) 100%)}
+html[data-theme="light"] #vignette{background:radial-gradient(120% 90% at 50% 0%, transparent 50%, rgba(16,24,40,.10) 100%)}
+#grain{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:var(--grain);mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ============ canvas (L1) ============ */
+#viewport{
+  position:fixed;inset:0;z-index:2;overflow:hidden;
+  background-image:radial-gradient(circle, var(--grid) 1px, transparent 1.2px);
+  background-size:24px 24px; background-position:0 0;
+  transition:background-color .5s;
+}
+#viewport.panning{cursor:grabbing}
+#viewport.panready{cursor:grab}
+#world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+
+/* ============ widget shell ============ */
+.widget{
+  position:absolute;width:var(--w,300px);
+  padding:14px 15px 15px;
+  border-radius:var(--r-panel);
+  background:var(--panel);
+  backdrop-filter:blur(var(--blur)) saturate(150%);
+  -webkit-backdrop-filter:blur(var(--blur)) saturate(150%);
+  border:1px solid var(--stroke);
+  box-shadow:var(--shadow), var(--inner);
+  transition:border-color .22s var(--ease), box-shadow .3s var(--ease), transform .16s var(--ease);
+  overflow:hidden;
+}
+.widget::before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(180deg, rgba(255,255,255,.055), transparent 38%);
+  opacity:.9;transition:opacity .3s}
+html[data-theme="light"] .widget::before{background:linear-gradient(180deg, rgba(255,255,255,.55), transparent 42%)}
+.widget:hover{border-color:var(--stroke-hi)}
+html[data-mode="edit"] .widget{cursor:grab}
+html[data-mode="edit"] .widget.dragging{cursor:grabbing}
+html[data-mode="edit"] .widget{--handle:1}
+.widget.dragging{box-shadow:var(--shadow-hi), var(--inner);transform:scale(1.006);transition:none}
+.widget.pinned{border-color:var(--stroke-hi)}
+
+.w-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;min-height:12px}
+.w-title{font-size:10.5px;font-weight:500;letter-spacing:.11em;text-transform:uppercase;color:var(--text-faint)}
+.w-grip{width:14px;height:10px;opacity:.35;background-image:radial-gradient(circle, currentColor .9px, transparent 1px);background-size:5px 5px;background-position:0 0;color:var(--text-dim);transition:opacity .2s}
+.widget:hover .w-grip{opacity:.75}
+html[data-mode="locked"] .widget:hover .w-grip{opacity:.2}
+
+.w-sub{font-size:12px;color:var(--text-dim);letter-spacing:-.01em}
+.num{font-variant-numeric:tabular-nums}
+
+/* ============ clock ============ */
+.time{display:flex;align-items:baseline;gap:2px;font-size:44px;font-weight:300;letter-spacing:-.045em;line-height:1}
+.time i{font-style:normal;color:var(--text-faint);margin:0 2px;animation:blink 2s steps(1) infinite}
+.time em{font-style:normal;font-size:16px;font-weight:400;color:var(--text-faint);margin-left:8px;letter-spacing:0}
+@keyframes blink{50%{opacity:.25}}
+[data-date]{margin-top:8px;text-transform:capitalize}
+.tz{margin-top:14px;display:flex;flex-direction:column;gap:7px;padding-top:12px;border-top:1px solid var(--stroke)}
+.tz-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim)}
+.tz-row b{color:var(--text);font-weight:500}
+
+/* ============ weather ============ */
+.temp{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+.temp .big{font-size:38px;font-weight:300;letter-spacing:-.04em;line-height:1}
+.bars{display:flex;align-items:flex-end;gap:4px;height:38px;margin:14px 0 12px}
+.bars i{flex:1;border-radius:2px;background:linear-gradient(180deg,var(--accent-soft),var(--track));height:var(--h,40%);
+  border-top:1px solid var(--accent);opacity:.85;transition:height .6s var(--ease)}
+.kv{display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);padding:4.5px 0}
+.kv b{color:var(--text);font-weight:500}
+
+/* ============ meters / sysmon ============ */
+.meter{margin-bottom:11px}
+.meter:last-child{margin-bottom:0}
+.meter-top{display:flex;justify-content:space-between;align-items:baseline;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px}
+.meter-top b{font-size:12.5px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--text)}
+.track{height:3px;border-radius:99px;background:var(--track);overflow:hidden}
+.track i{display:block;height:100%;border-radius:99px;background:var(--accent);opacity:.9;
+  box-shadow:0 0 8px var(--accent-soft);transition:width .55s var(--ease)}
+
+/* ============ calendar ============ */
+.cal-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.cal-head b{font-size:14px;font-weight:500;text-transform:capitalize}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-grid span{font-size:10px;text-align:center;color:var(--text-faint);padding-bottom:5px;letter-spacing:.04em}
+.cal-grid b{font-size:12px;font-weight:400;text-align:center;height:26px;line-height:26px;border-radius:7px;color:var(--text-dim);position:relative}
+.cal-grid b.out{color:transparent}
+.cal-grid b.today{background:var(--accent);color:#fff;font-weight:500;box-shadow:0 0 14px var(--accent-soft)}
+.cal-grid b.ev::after{content:"";position:absolute;left:50%;bottom:4px;width:3px;height:3px;border-radius:50%;background:var(--accent);transform:translateX(-50%)}
+.cal-grid b.today.ev::after{background:#fff}
+.next{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:11px;border-top:1px solid var(--stroke);font-size:12px;color:var(--text-dim)}
+.next .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.next b{color:var(--text);font-weight:500}
+
+/* ============ notes ============ */
+.notes{list-style:none;display:flex;flex-direction:column;gap:2px;margin:-2px 0 8px}
+.notes li{display:flex;align-items:center;gap:9px;padding:5px 6px;border-radius:var(--r-item);font-size:12.5px;
+  transition:background .2s, color .2s}
+.notes li:hover{background:var(--panel-hi)}
+.notes input{appearance:none;width:13px;height:13px;border:1px solid var(--stroke-hi);border-radius:4px;flex:0 0 auto;
+  position:relative;cursor:pointer;transition:all .18s var(--ease)}
+.notes input:checked{background:var(--accent);border-color:var(--accent);box-shadow:0 0 10px var(--accent-soft)}
+.notes input:checked::after{content:"";position:absolute;left:3.5px;top:1px;width:4px;height:7px;
+  border:1.5px solid #fff;border-top:0;border-left:0;transform:rotate(40deg)}
+.notes li span{flex:1;color:var(--text);transition:color .2s, opacity .2s}
+.notes li.done span{color:var(--text-faint);text-decoration:line-through;text-decoration-color:var(--text-faint)}
+.notes li button{opacity:0;font-size:14px;color:var(--text-faint);line-height:1;padding:0 2px;transition:opacity .15s}
+.notes li:hover button{opacity:1}
+.note-new{width:100%;background:var(--panel-hi);border:1px solid var(--stroke);border-radius:var(--r-item);
+  padding:8px 10px;font-size:12.5px;color:var(--text);outline:none;transition:border-color .2s, box-shadow .2s}
+.note-new::placeholder{color:var(--text-faint)}
+.note-new:focus{border-color:var(--stroke-hi);box-shadow:0 0 0 3px var(--accent-soft)}
+
+/* ============ pomodoro ============ */
+.ring{position:relative;width:120px;height:120px;margin:2px auto 14px}
+.ring svg{transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:3;stroke-linecap:round}
+.ring-bg{stroke:var(--track)}
+.ring-fg{stroke:var(--accent);filter:drop-shadow(0 0 6px var(--accent-soft));
+  transition:stroke-dashoffset .5s linear, stroke .3s}
+.ring-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.ring-txt span{font-size:24px;font-weight:300;letter-spacing:-.03em}
+.ring-txt small{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint)}
+.row-btns{display:flex;gap:8px}
+.row-btns button{flex:1;padding:8px;border-radius:var(--r-item);font-size:12px;font-weight:500;
+  background:var(--panel-hi);border:1px solid var(--stroke);transition:all .2s var(--ease)}
+.row-btns button:hover{border-color:var(--stroke-hi);box-shadow:0 0 0 3px var(--accent-soft)}
+.row-btns button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.row-btns button.primary:hover{filter:brightness(1.08)}
+
+/* ============ cron ============ */
+.cron{list-style:none;display:flex;flex-direction:column;gap:1px}
+.cron li{display:flex;align-items:center;gap:10px;padding:7px 6px;border-radius:var(--r-item);transition:background .2s}
+.cron li:hover{background:var(--panel-hi)}
+.cron time{font-size:11px;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:.02em;
+  width:44px;flex:0 0 auto;opacity:.9}
+.cron span{flex:1;font-size:12.5px;color:var(--text-dim)}
+.cron li.off span,.cron li.off time{opacity:.35}
+.sw{width:26px;height:15px;border-radius:99px;background:var(--track);position:relative;flex:0 0 auto;cursor:pointer;
+  transition:background .22s var(--ease)}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;
+  background:var(--text-faint);transition:transform .22s var(--ease), background .22s}
+.sw.on{background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.sw.on::after{transform:translateX(11px);background:var(--accent);box-shadow:0 0 8px var(--accent)}
+
+/* ============ player ============ */
+.track-row{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.cover{width:46px;height:46px;border-radius:var(--r-item);flex:0 0 auto;
+  background:conic-gradient(from 200deg at 50% 50%, var(--accent), var(--accent-2), transparent 75%, var(--accent));
+  opacity:.85;box-shadow:0 0 20px var(--accent-soft)}
+.t-title{font-size:13.5px;font-weight:500;margin-bottom:3px}
+.progress{height:3px;border-radius:99px;background:var(--track);overflow:hidden;margin-bottom:6px}
+.progress i{display:block;height:100%;background:var(--accent);border-radius:99px;box-shadow:0 0 8px var(--accent-soft);transition:width .4s linear}
+.times{display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-faint);margin-bottom:12px}
+.transport{display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:14px}
+.transport button{color:var(--text-dim);font-size:13px;transition:color .2s, transform .2s}
+.transport button:hover{color:var(--text);transform:scale(1.12)}
+.transport button.play{width:34px;height:34px;border-radius:50%;background:var(--panel-hi);border:1px solid var(--stroke);
+  display:grid;place-items:center;color:var(--text)}
+.transport button.play:hover{box-shadow:0 0 0 4px var(--accent-soft);border-color:var(--stroke-hi)}
+.viz{display:flex;align-items:flex-end;gap:3px;height:26px}
+.viz i{flex:1;background:var(--accent);opacity:.45;border-radius:2px;height:20%;transition:height .18s ease-out}
+
+/* ============ icons ============ */
+.ic{width:17px;height:17px;display:block;flex:0 0 auto;opacity:.92}
+.ic-sm{width:19px;height:19px}
+#dock button .ic{opacity:.8;transition:opacity .2s}
+#dock button:hover .ic{opacity:1}
+#dock button.kbd{font-size:10.5px;letter-spacing:.06em;color:var(--text-faint);padding:0 9px}
+#dock button.kbd:hover{color:var(--text)}
+#dock button[data-act="mode-edit"].on .ic,
+#dock button[data-act="ink"].on .ic{opacity:1}
+#dock button[data-act="mode-edit"].on{color:var(--accent)}
+#dock button[data-act="ink"].on{color:var(--accent)}
+
+/* ============ HUD ============ */
+#hud-l{position:fixed;top:20px;left:22px;z-index:40;display:flex;align-items:center;gap:14px;pointer-events:none}
+.logo{font-size:12px;font-weight:600;letter-spacing:.22em;text-transform:uppercase}
+.hud-meta{display:flex;gap:10px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint)}
+.hud-meta span{display:flex;align-items:center;gap:5px}
+.hud-meta i{width:4px;height:4px;border-radius:50%;background:var(--accent);display:block;box-shadow:0 0 6px var(--accent)}
+#hud-r{position:fixed;top:18px;right:22px;z-index:40;display:flex;gap:6px;padding:5px;border-radius:var(--r-chip);
+  background:var(--panel);backdrop-filter:blur(var(--blur)) saturate(150%);-webkit-backdrop-filter:blur(var(--blur)) saturate(150%);
+  border:1px solid var(--stroke);box-shadow:var(--shadow), var(--inner)}
+#hud-r button{padding:6px 13px;border-radius:var(--r-chip);font-size:11.5px;color:var(--text-dim);transition:all .22s var(--ease)}
+#hud-r button:hover{color:var(--text)}
+#hud-r button.on{background:var(--panel-hi);color:var(--text);box-shadow:0 0 0 1px var(--stroke), 0 0 14px var(--accent-soft)}
+
+/* ============ dock ============ */
+#dock{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:4px;
+  padding:6px;border-radius:var(--r-chip);background:var(--panel);
+  backdrop-filter:blur(var(--blur)) saturate(150%);-webkit-backdrop-filter:blur(var(--blur)) saturate(150%);
+  border:1px solid var(--stroke);box-shadow:var(--shadow), var(--inner)}
+#dock button{height:32px;min-width:32px;padding:0 11px;border-radius:var(--r-chip);display:flex;align-items:center;gap:6px;
+  font-size:11.5px;color:var(--text-dim);transition:all .2s var(--ease)}
+#dock button:hover{background:var(--panel-hi);color:var(--text)}
+#dock button.on{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 1px rgba(122,155,255,.35)}
+#dock .sep{width:1px;height:18px;background:var(--stroke);margin:0 5px}
+#dock small{font-size:10px;letter-spacing:.04em;opacity:.7}
+
+/* ============ palette ============ */
+#palette{position:fixed;inset:0;z-index:70;display:none;place-items:start center;padding-top:14vh;
+  background:rgba(6,7,10,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+html[data-theme="light"] #palette{background:rgba(246,247,249,.45)}
+#palette.open{display:grid}
+.pal{width:min(560px,92vw);border-radius:18px;overflow:hidden;background:var(--panel-hi);
+  backdrop-filter:blur(40px) saturate(160%);-webkit-backdrop-filter:blur(40px) saturate(160%);
+  border:1px solid var(--stroke-hi);box-shadow:0 40px 120px -30px rgba(0,0,0,.7), 0 0 0 1px rgba(122,155,255,.12);
+  animation:pop .18s var(--ease)}
+@keyframes pop{from{opacity:0;transform:translateY(-8px) scale(.985)}}
+.pal input{width:100%;padding:17px 20px;background:none;border:0;outline:none;font-size:15px;color:var(--text);
+  border-bottom:1px solid var(--stroke)}
+.pal input::placeholder{color:var(--text-faint)}
+.pal ul{list-style:none;max-height:46vh;overflow:auto;padding:7px}
+.pal li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 13px;border-radius:10px;
+  font-size:13px;color:var(--text-dim);cursor:pointer}
+.pal li.sel,.pal li:hover{background:var(--panel-hi);color:var(--text);box-shadow:inset 0 0 0 1px var(--stroke)}
+.pal li em{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-faint);font-style:normal}
+.pal li.sel em{color:var(--accent)}
+
+/* ============ ink ============ */
+#ink{position:fixed;inset:0;z-index:30;pointer-events:none}
+html[data-ink="on"] #ink{pointer-events:auto;cursor:crosshair}
+
+/* ============ toast ============ */
+/* scrollbars */
+.pal ul::-webkit-scrollbar,#notes-scroll::-webkit-scrollbar,.widget *::-webkit-scrollbar{width:8px;height:8px}
+.pal ul::-webkit-scrollbar-thumb,.widget *::-webkit-scrollbar-thumb{background:var(--track);border-radius:99px}
+.pal ul::-webkit-scrollbar-track,.widget *::-webkit-scrollbar-track{background:transparent}
+
+/* hints */
+#hints{position:fixed;left:22px;bottom:24px;z-index:40;display:flex;flex-direction:column;gap:5px;
+  font-size:10.5px;letter-spacing:.03em;color:var(--text-faint);pointer-events:none;
+  transition:opacity .6s var(--ease)}
+#hints kbd{font-family:inherit;font-size:10px;padding:1px 5px;border-radius:4px;background:var(--panel);
+  border:1px solid var(--stroke);color:var(--text-dim);margin-right:3px}
+#hints.hide{opacity:0}
+
+#toast{position:fixed;bottom:78px;left:50%;transform:translate(-50%,10px);z-index:80;opacity:0;pointer-events:none;
+  padding:9px 16px;border-radius:var(--r-chip);font-size:12px;color:var(--text);background:var(--panel-hi);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--stroke);
+  box-shadow:var(--shadow);transition:all .28s var(--ease)}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="i-fit" viewBox="0 0 20 20"><path d="M7.5 3.5h-4v4M12.5 3.5h4v4M16.5 12.5v4h-4M3.5 12.5v4h4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+<symbol id="i-move" viewBox="0 0 20 20"><path d="M10 3v14M3 10h14M10 3l-2 2M10 3l2 2M10 17l-2-2M10 17l2-2M3 10l2-2M3 10l2 2M17 10l-2-2M17 10l-2 2" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-lock" viewBox="0 0 20 20"><rect x="4.5" y="9" width="11" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7 9V6.8a3 3 0 0 1 6 0V9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+<symbol id="i-pass" viewBox="0 0 20 20"><path d="M3.5 10h3M13.5 10h3M8.5 10h3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="2.2 2.6"/><path d="M9.4 6.6 10 5.4l.6 1.2M10.6 13.4 10 14.6l-.6-1.2" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></symbol>
+<symbol id="i-moon" viewBox="0 0 20 20"><path d="M15.5 12.3A6.2 6.2 0 0 1 7.7 4.5 6.4 6.4 0 1 0 15.5 12.3Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+<symbol id="i-sun" viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 2.6v1.6M10 15.8v1.6M2.6 10h1.6M15.8 10h1.6M4.8 4.8l1.1 1.1M14.1 14.1l1.1 1.1M15.2 4.8l-1.1 1.1M5.9 14.1l-1.1 1.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+<symbol id="i-pen" viewBox="0 0 20 20"><path d="M13.2 3.9 16.1 6.8 7.4 15.5 3.5 16.5l1-3.9 8.7-8.7Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+<symbol id="i-plus" viewBox="0 0 20 20"><path d="M10 4.5v11M4.5 10h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+<symbol id="i-prev" viewBox="0 0 20 20"><path d="M14 5v10L7 10l7-5Z" fill="currentColor"/><rect x="4" y="5" width="1.6" height="10" rx=".8" fill="currentColor"/></symbol>
+<symbol id="i-next" viewBox="0 0 20 20"><path d="M6 5v10l7-5-7-5Z" fill="currentColor"/><rect x="14.4" y="5" width="1.6" height="10" rx=".8" fill="currentColor"/></symbol>
+<symbol id="i-pause" viewBox="0 0 20 20"><rect x="6" y="5" width="2.6" height="10" rx="1" fill="currentColor"/><rect x="11.4" y="5" width="2.6" height="10" rx="1" fill="currentColor"/></symbol>
+<symbol id="i-play" viewBox="0 0 20 20"><path d="M7 5.2v9.6L15 10 7 5.2Z" fill="currentColor"/></symbol>
+</defs></svg>
+<div id="scene"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<div id="vignette"></div>
+
+<div id="viewport"><div id="world"></div></div>
+<canvas id="ink"></canvas>
+
+<div id="hud-l">
+  <span class="logo">Vela</span>
+  <span class="hud-meta">
+    <span><i></i><span id="modeRead">edit</span></span>
+    <span id="zoomRead">100%</span>
+  </span>
+</div>
+
+<div id="hud-r">
+  <button data-profile="aurora" class="on">Работа</button>
+  <button data-profile="void">Вечер</button>
+  <button data-profile="mesh">Игра</button>
+</div>
+
+<div id="dock">
+  <button data-act="fit" title="Вписать холст"><svg class="ic"><use href="#i-fit"/></svg><span>Fit</span></button>
+  <div class="sep"></div>
+  <button data-act="mode-edit" class="on" title="Редактирование"><svg class="ic"><use href="#i-move"/></svg></button>
+  <button data-act="mode-locked" title="Заблокировано"><svg class="ic"><use href="#i-lock"/></svg></button>
+  <button data-act="mode-pass" title="Сквозной режим"><svg class="ic"><use href="#i-pass"/></svg></button>
+  <div class="sep"></div>
+  <button data-act="theme" title="Тема"><svg class="ic" data-theme-ic><use href="#i-moon"/></svg></button>
+  <button data-act="ink" title="Рисование"><svg class="ic"><use href="#i-pen"/></svg></button>
+  <button data-act="add"><svg class="ic"><use href="#i-plus"/></svg><span>Виджет</span></button>
+  <div class="sep"></div>
+  <button data-act="palette" class="kbd">⌘K</button>
+</div>
+
+<div id="palette">
+  <div class="pal">
+    <input id="palInput" placeholder="Команда или виджет…" autocomplete="off" spellcheck="false">
+    <ul id="palList"></ul>
+  </div>
+</div>
+
+<div id="hints">
+  <span><kbd>wheel</kbd> зум · <kbd>drag</kbd> пан · <kbd>Alt</kbd> без снапа</span>
+  <span><kbd>⌘K</kbd> палитра · <kbd>T</kbd> тема · <kbd>E</kbd>/<kbd>L</kbd>/<kbd>P</kbd> режим</span>
+</div>
+
+<div id="toast"></div>
+<div id="grain"></div>
+
+<!-- ============ widget templates ============ -->
+<template id="tpl-clock">
+  <div class="w-head"><span class="w-title">Время</span><span class="w-grip"></span></div>
+  <div class="time"><span data-h>--</span><i>:</i><span data-m>--</span><em data-s>--</em></div>
+  <div class="w-sub" data-date>—</div>
+  <div class="tz" data-tz></div>
+</template>
+
+<template id="tpl-weather">
+  <div class="w-head"><span class="w-title">Погода</span><span class="w-grip"></span></div>
+  <div class="temp"><span class="big">14°</span><span class="w-sub">Облачно<br>ощущается 12°</span></div>
+  <div class="bars" data-bars></div>
+  <div class="kv"><span>Ветер</span><b>4.2 м/с</b></div>
+  <div class="kv"><span>Влажность</span><b>68%</b></div>
+  <div class="kv"><span>Воздух</span><b>32 · хорошо</b></div>
+</template>
+
+<template id="tpl-sysmon">
+  <div class="w-head"><span class="w-title">Система</span><span class="w-grip"></span></div>
+  <div data-meters></div>
+</template>
+
+<template id="tpl-calendar">
+  <div class="w-head"><span class="w-title">Календарь</span><span class="w-grip"></span></div>
+  <div class="cal-head"><b data-month>—</b><span class="w-sub" data-events>—</span></div>
+  <div class="cal-grid" data-grid></div>
+  <div class="next"><span class="dot"></span><span><b>Созвон с командой</b> · 14:30</span></div>
+</template>
+
+<template id="tpl-notes">
+  <div class="w-head"><span class="w-title">Заметки</span><span class="w-grip"></span></div>
+  <ul class="notes" data-list>
+    <li><label style="display:flex;align-items:center;gap:9px;flex:1"><input type="checkbox" checked><span>Прототип холста готов</span></label><button data-del>×</button></li>
+    <li><label style="display:flex;align-items:center;gap:9px;flex:1"><input type="checkbox"><span>Собрать MVP на Tauri 2</span></label><button data-del>×</button></li>
+    <li><label style="display:flex;align-items:center;gap:9px;flex:1"><input type="checkbox"><span>Скриншотер + аннотации</span></label><button data-del>×</button></li>
+  </ul>
+  <input class="note-new" placeholder="Новая заметка…">
+</template>
+
+<template id="tpl-pomodoro">
+  <div class="w-head"><span class="w-title">Таймер</span><span class="w-grip"></span></div>
+  <div class="ring">
+    <svg viewBox="0 0 120 120" width="120" height="120">
+      <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+      <circle class="ring-fg" cx="60" cy="60" r="52" data-ring
+              stroke-dasharray="326.7" stroke-dashoffset="0">
+    </svg>
+    <div class="ring-txt"><span data-time>25:00</span><small data-phase>фокус</small></div>
+  </div>
+  <div class="row-btns">
+    <button class="primary" data-start>Старт</button>
+    <button data-reset>Сброс</button>
+  </div>
+</template>
+
+<template id="tpl-cron">
+  <div class="w-head"><span class="w-title">Cron</span><span class="w-grip"></span></div>
+  <ul class="cron" data-cron>
+    <li><time>09:00</time><span>Профиль «Работа»</span><div class="sw on"></div></li>
+    <li><time>13:00</time><span>Напоминание: обед</span><div class="sw on"></div></li>
+    <li><time>18:30</time><span>Профиль «Вечер»</span><div class="sw on"></div></li>
+    <li class="off"><time>02:00</time><span>Бэкап заметок</span><div class="sw"></div></li>
+  </ul>
+</template>
+
+<template id="tpl-player">
+  <div class="w-head"><span class="w-title">Сейчас играет</span><span class="w-grip"></span></div>
+  <div class="track-row">
+    <div class="cover"></div>
+    <div style="min-width:0">
+      <div class="t-title">Weightless</div>
+      <div class="w-sub">Marconi Union</div>
+    </div>
+  </div>
+  <div class="progress"><i style="width:36%"></i></div>
+  <div class="times"><span>1:48</span><span>4:52</span></div>
+  <div class="transport">
+    <button><svg class="ic ic-sm"><use href="#i-prev"/></svg></button>
+    <button class="play"><svg class="ic ic-sm" data-play-ic><use href="#i-pause"/></svg></button>
+    <button><svg class="ic ic-sm"><use href="#i-next"/></svg></button>
+  </div>
+  <div class="viz" data-viz></div>
+</template>
+
+<template id="tpl-capture">
+  <div class="w-head"><span class="w-title">Захват</span><span class="w-grip"></span></div>
+  <div class="row-btns" style="margin-bottom:9px"><button class="primary">Регион</button><button>Окно</button></div>
+  <div class="row-btns" style="margin-bottom:13px"><button>Экран</button><button>Прокрутка</button></div>
+  <div class="w-sub" style="display:flex;justify-content:space-between;padding-top:11px;border-top:1px solid var(--stroke)">
+    <span>Pin на холст</span><b style="color:var(--accent);font-weight:500">Ctrl+Shift+2</b>
+  </div>
+  <div class="w-sub" style="display:flex;justify-content:space-between;margin-top:7px">
+    <span>OCR → буфер</span><b style="color:var(--accent);font-weight:500">Ctrl+Shift+3</b>
+  </div>
+</template>
+
+<script>
+/* =============== adaptive theme (first run) =============== */
+if (!localStorage.getItem('vela.theme')) {
+  const light = matchMedia('(prefers-color-scheme: light)').matches;
+  document.documentElement.dataset.theme = light ? 'light' : 'dark';
+  const u = document.querySelector('[data-act="theme"] use');
+  if (u) u.setAttribute('href', light ? '#i-sun' : '#i-moon');
+}
+
+/* =============== state =============== */
+const COL = 240, GAP = 24, X = i => i * (COL + GAP);
+const W = {
+  clock:    {tpl:'tpl-clock',    w:COL},
+  weather:  {tpl:'tpl-weather',  w:COL},
+  sysmon:   {tpl:'tpl-sysmon',   w:COL},
+  calendar: {tpl:'tpl-calendar', w:COL},
+  notes:    {tpl:'tpl-notes',    w:COL},
+  pomodoro: {tpl:'tpl-pomodoro', w:COL},
+  cron:     {tpl:'tpl-cron',     w:COL},
+  player:   {tpl:'tpl-player',   w:COL},
+  capture:  {tpl:'tpl-capture',  w:COL},
+};
+/* колоночная раскладка (masonry): [id, column] */
+const LAYOUT = [
+  ['clock', 0], ['notes', 0],
+  ['calendar', 1], ['pomodoro', 1],
+  ['sysmon', 2], ['cron', 2],
+  ['weather', 3], ['player', 3], ['capture', 3],
+];
+const PROFILES = {
+  aurora:{keep:['clock','calendar','notes','pomodoro','cron','weather','capture'], scene:'aurora'},
+  void:  {keep:['clock','notes','player','pomodoro'], scene:'void'},
+  mesh:  {keep:['clock','sysmon','player'], scene:'mesh'},
+};
+
+const world = document.getElementById('world');
+const viewport = document.getElementById('viewport');
+let scale = 1, tx = 0, ty = 0;
+let mode = 'edit';
+
+/* =============== widget factory =============== */
+function makeWidget(id, x, y, opts = {}) {
+  const def = W[id];
+  const el = document.createElement('div');
+  el.className = 'widget';
+  el.dataset.id = id;
+  el.style.setProperty('--w', (opts.w || def.w) + 'px');
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.innerHTML = document.getElementById(def.tpl).innerHTML;
+  world.appendChild(el);
+
+  /* drag: заголовок или любое «пустое» место плитки (alt — без снапа) */
+  el.addEventListener('pointerdown', e => {
+    if (mode !== 'edit') return;
+    if (e.button !== 0) return;
+    if (e.target.closest('input, button, label, select, .sw, .widget a')) return;
+    e.stopPropagation();
+    const sx = e.clientX, sy = e.clientY;
+    const ox = parseFloat(el.style.left), oy = parseFloat(el.style.top);
+    el.classList.add('dragging');
+    el.setPointerCapture(e.pointerId);
+    const move = ev => {
+      let nx = ox + (ev.clientX - sx) / scale;
+      let ny = oy + (ev.clientY - sy) / scale;
+      if (!ev.altKey) { nx = Math.round(nx / 8) * 8; ny = Math.round(ny / 8) * 8; }
+      el.style.left = nx + 'px';
+      el.style.top = ny + 'px';
+    };
+    const up = () => {
+      el.classList.remove('dragging');
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', up);
+      save();
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+  });
+
+  /* bring to front */
+  el.addEventListener('pointerdown', () => {
+    wire.forEach(w => w.el.style.zIndex = 1);
+    el.style.zIndex = 2;
+  });
+
+  wireWidget(id, el);
+  return el;
+}
+const wire = [];
+
+/* =============== module logic =============== */
+function wireWidget(id, el) {
+  const rec = {id, el};
+  wire.push(rec);
+
+  if (id === 'clock') {
+    const tzs = [
+      {city:'Берлин', off:0}, {city:'Лондон', off:-1}, {city:'Нью-Йорк', off:-6}
+    ];
+    const box = el.querySelector('[data-tz]');
+    box.innerHTML = tzs.map(t => `<div class="tz-row"><span>${t.city}</span><b data-city="${t.off}">--:--</b></div>`).join('');
+    rec.tick = () => {
+      const d = new Date();
+      el.querySelector('[data-h]').textContent = String(d.getHours()).padStart(2,'0');
+      el.querySelector('[data-m]').textContent = String(d.getMinutes()).padStart(2,'0');
+      el.querySelector('[data-s]').textContent = String(d.getSeconds()).padStart(2,'0');
+      el.querySelector('[data-date]').textContent =
+        d.toLocaleDateString('ru-RU', {weekday:'long', day:'numeric', month:'long'});
+      box.querySelectorAll('[data-city]').forEach(b => {
+        const nd = new Date(d.getTime() + (+b.dataset.city) * 3600e3);
+        b.textContent = String(nd.getHours()).padStart(2,'0') + ':' + String(nd.getMinutes()).padStart(2,'0');
+      });
+    };
+  }
+
+  if (id === 'weather') {
+    const bars = el.querySelector('[data-bars]');
+    const h = [38, 52, 74, 61, 44, 33, 58, 82];
+    bars.innerHTML = h.map(v => `<i style="--h:${v}%"></i>`).join('');
+    rec.tick = () => {
+      bars.querySelectorAll('i').forEach(b => b.style.setProperty('--h', (28 + Math.random()*60).toFixed(0) + '%'));
+    };
+  }
+
+  if (id === 'sysmon') {
+    const data = [
+      {k:'CPU', v:24}, {k:'GPU', v:11}, {k:'RAM', v:58}, {k:'Диск', v:41}, {k:'Сеть', v:7}
+    ];
+    el.querySelector('[data-meters]').innerHTML = data.map(d =>
+      `<div class="meter"><div class="meter-top"><span>${d.k}</span><b data-v="${d.k}">${d.v}%</b></div>
+       <div class="track"><i style="width:${d.v}%"></i></div></div>`).join('');
+    rec.tick = () => {
+      el.querySelectorAll('.meter').forEach(m => {
+        const b = m.querySelector('b');
+        const base = {CPU:26, GPU:12, RAM:58, 'Диск':41, 'Сеть':8}[b.dataset.v] ?? 30;
+        const v = Math.max(3, Math.min(96, base + (Math.random()-0.5)*18));
+        b.textContent = v.toFixed(0) + '%';
+        m.querySelector('.track i').style.width = v + '%';
+      });
+    };
+  }
+
+  if (id === 'calendar') {
+    const d = new Date();
+    const y = d.getFullYear(), m = d.getMonth();
+    el.querySelector('[data-month]').textContent =
+      d.toLocaleDateString('ru-RU', {month:'long', year:'numeric'});
+    const first = new Date(y, m, 1);
+    let start = (first.getDay() + 6) % 7;
+    const days = new Date(y, m+1, 0).getDate();
+    const prev = new Date(y, m, 0).getDate();
+    let cells = '<span>П</span><span>В</span><span>С</span><span>Ч</span><span>П</span><span>С</span><span>В</span>';
+    const evDays = new Set([4, 9, 12, 18, 23]);
+    for (let i = 0; i < start; i++) cells += `<b class="out">${prev - start + i + 1}</b>`;
+    for (let i = 1; i <= days; i++) {
+      const cls = [i === d.getDate() ? 'today' : '', evDays.has(i) ? 'ev' : ''].join(' ').trim();
+      cells += `<b class="${cls}">${i}</b>`;
+    }
+    const tail = (7 - ((start + days) % 7)) % 7;
+    for (let i = 1; i <= tail; i++) cells += `<b class="out">${i}</b>`;
+    el.querySelector('[data-grid]').innerHTML = cells;
+    el.querySelector('[data-events]').textContent = evDays.size + ' событий';
+  }
+
+  if (id === 'notes') {
+    const list = el.querySelector('[data-list]');
+    const input = el.querySelector('.note-new');
+    const sync = () => list.querySelectorAll('li').forEach(li => {
+      li.classList.toggle('done', li.querySelector('input').checked);
+    });
+    sync();
+    list.addEventListener('change', sync);
+    list.addEventListener('click', e => {
+      if (e.target.matches('[data-del]')) {
+        e.target.closest('li').remove();
+        save();
+      }
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' || !input.value.trim()) return;
+      const li = document.createElement('li');
+      li.innerHTML = `<label style="display:flex;align-items:center;gap:9px;flex:1">
+        <input type="checkbox"><span></span></label><button data-del>×</button>`;
+      li.querySelector('span').textContent = input.value.trim();
+      list.appendChild(li);
+      input.value = '';
+      save();
+    });
+  }
+
+  if (id === 'pomodoro') {
+    const ring = el.querySelector('[data-ring]');
+    const C = 2 * Math.PI * 52;
+    let total = 25 * 60, left = total, run = false, iv;
+    const render = () => {
+      el.querySelector('[data-time]').textContent =
+        String(Math.floor(left/60)).padStart(2,'0') + ':' + String(left%60).padStart(2,'0');
+      ring.style.strokeDashoffset = C * (1 - left / total);
+    };
+    el.querySelector('[data-start]').addEventListener('click', e => {
+      run = !run;
+      e.target.textContent = run ? 'Пауза' : 'Старт';
+      clearInterval(iv);
+      if (run) iv = setInterval(() => {
+        if (left > 0) left--;
+        else { run = false; clearInterval(iv); e.target.textContent = 'Старт';
+          el.querySelector('[data-phase]').textContent = 'готово'; toast('Таймер завершён'); }
+        render();
+      }, 1000);
+    });
+    el.querySelector('[data-reset]').addEventListener('click', e => {
+      clearInterval(iv); run = false; left = total; render();
+      el.querySelector('[data-start]').textContent = 'Старт';
+      el.querySelector('[data-phase]').textContent = 'фокус';
+    });
+    render();
+  }
+
+  if (id === 'cron') {
+    el.querySelectorAll('.sw').forEach(sw => sw.addEventListener('click', () => {
+      sw.classList.toggle('on');
+      sw.closest('li').classList.toggle('off', !sw.classList.contains('on'));
+    }));
+  }
+
+  if (id === 'player') {
+    const viz = el.querySelector('[data-viz]');
+    viz.innerHTML = '<i></i>'.repeat(22);
+    rec.tick = () => viz.querySelectorAll('i').forEach(b =>
+      b.style.height = (12 + Math.random() * 78).toFixed(0) + '%');
+    const play = el.querySelector('.play');
+    const use = play.querySelector('use');
+    let playing = true;
+    play.addEventListener('click', () => {
+      playing = !playing;
+      use.setAttribute('href', playing ? '#i-pause' : '#i-play');
+      viz.querySelectorAll('i').forEach(b => b.style.height = playing ? (12 + Math.random()*78).toFixed(0)+'%' : '6%');
+    });
+  }
+
+  if (id === 'capture') {
+    el.querySelectorAll('.row-btns button').forEach(b => b.addEventListener('click', () => {
+      toast('Захват: ' + b.textContent.trim());
+      flash();
+    }));
+  }
+}
+
+/* =============== tick loop =============== */
+function loop() {
+  const now = Date.now();
+  wire.forEach(r => { if (r.tick) { if (!r._last || now - r._last > 900) { r._last = now; r.tick(); } } });
+}
+setInterval(loop, 1000);
+loop();
+
+/* =============== transform =============== */
+function apply() {
+  world.style.transform = `translate3d(${tx}px,${ty}px,0) scale(${scale})`;
+  viewport.style.backgroundSize = `${24*scale}px ${24*scale}px`;
+  viewport.style.backgroundPosition = `${tx}px ${ty}px`;
+  document.getElementById('zoomRead').textContent = Math.round(scale * 100) + '%';
+}
+function fit() {
+  const items = [...world.children].filter(el => el.style.opacity !== '0');
+  if (!items.length) return;
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  items.forEach(el => {
+    const x = parseFloat(el.style.left), y = parseFloat(el.style.top);
+    x0 = Math.min(x0, x); y0 = Math.min(y0, y);
+    x1 = Math.max(x1, x + el.offsetWidth); y1 = Math.max(y1, y + el.offsetHeight);
+  });
+  const pad = 80;
+  const s = Math.min((innerWidth - pad*2) / (x1-x0), (innerHeight - pad*3) / (y1-y0), 1.15);
+  scale = s;
+  tx = (innerWidth - (x1-x0)*s) / 2 - x0*s;
+  ty = (innerHeight - (y1-y0)*s) / 2 - y0*s + 20;
+  apply();
+}
+
+/* zoom */
+viewport.addEventListener('wheel', e => {
+  e.preventDefault();
+  const k = e.ctrlKey ? 0.008 : 0.0016;
+  const next = Math.min(2.2, Math.max(0.35, scale * (1 - e.deltaY * k)));
+  const mx = e.clientX, my = e.clientY;
+  tx = mx - (mx - tx) * (next / scale);
+  ty = my - (my - ty) * (next / scale);
+  scale = next;
+  apply();
+}, {passive:false});
+
+/* pan */
+let pan = null;
+viewport.addEventListener('pointerdown', e => {
+  if (e.target.closest('.widget') && mode === 'edit' && !e.altKey) return;
+  if (e.target.closest('.widget') && !e.altKey && mode !== 'edit') return;
+  pan = {x:e.clientX, y:e.clientY, tx, ty};
+  viewport.classList.add('panning');
+});
+addEventListener('pointermove', e => {
+  if (!pan) return;
+  tx = pan.tx + (e.clientX - pan.x);
+  ty = pan.ty + (e.clientY - pan.y);
+  apply();
+});
+addEventListener('pointerup', () => { pan = null; viewport.classList.remove('panning'); });
+addEventListener('keydown', e => {
+  const typing = /INPUT|TEXTAREA/.test(document.activeElement.tagName) || isPaletteOpen();
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPalette(); return; }
+  if (typing) return;
+  if (e.key === ' ') { viewport.classList.add('panready'); e.preventDefault(); }
+  if (e.key === '0' || e.key === 'Home') { e.preventDefault(); fit(); }
+  if (e.key.toLowerCase() === 't') document.querySelector('[data-act="theme"]').click();
+  if (e.key.toLowerCase() === 'e') setMode('edit');
+  if (e.key.toLowerCase() === 'l') setMode('locked');
+  if (e.key.toLowerCase() === 'p') setMode('pass');
+  if (e.key === 'Escape') { closePalette(); }
+});
+addEventListener('keyup', e => { if (e.key === ' ') viewport.classList.remove('panready'); });
+addEventListener('resize', apply);
+
+/* =============== modes =============== */
+function setMode(m) {
+  mode = m;
+  document.documentElement.dataset.mode = m;
+  world.querySelectorAll('.widget').forEach(w => {
+    w.style.pointerEvents = (m === 'pass') ? 'none' : 'auto';
+    w.classList.toggle('pinned', m === 'locked');
+    w.querySelector('.w-grip').style.opacity = (m === 'edit') ? '' : '.15';
+  });
+  document.getElementById('modeRead').textContent =
+    m === 'edit' ? 'edit' : m === 'locked' ? 'locked' : 'pass-through';
+  document.querySelectorAll('[data-act^="mode-"]').forEach(b =>
+    b.classList.toggle('on', b.dataset.act === 'mode-' + m));
+  toast({edit:'Холст: редактирование', locked:'Холст: заблокирован', pass:'Холст: сквозной режим'}[m]);
+}
+
+/* =============== dock / hud =============== */
+document.getElementById('dock').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const a = b.dataset.act;
+  if (a === 'fit') fit();
+  if (a === 'theme') {
+    const cur = document.documentElement.dataset.theme;
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem('vela.theme', next); } catch {}
+    b.querySelector('use').setAttribute('href', next === 'dark' ? '#i-moon' : '#i-sun');
+  }
+  if (a === 'ink') {
+    const on = document.documentElement.dataset.ink === 'on';
+    document.documentElement.dataset.ink = on ? 'off' : 'on';
+    b.classList.toggle('on', !on);
+    toast(!on ? 'Рисование включено — рисуйте по холсту' : 'Рисование выключено');
+  }
+  if (a === 'add') openPalette(true);
+  if (a === 'palette') openPalette();
+  if (a.startsWith('mode-')) setMode(a.slice(5));
+});
+
+document.getElementById('hud-r').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#hud-r button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  applyProfile(b.dataset.profile);
+});
+
+function applyProfile(name) {
+  const p = PROFILES[name];
+  document.documentElement.dataset.scene = p.scene;
+  world.querySelectorAll('.widget').forEach(el => {
+    const on = p.keep.includes(el.dataset.id);
+    el.style.transition = 'opacity .35s var(--ease), transform .35s var(--ease)';
+    el.style.opacity = on ? 1 : 0;
+    el.style.transform = on ? 'scale(1)' : 'scale(.96)';
+    el.style.pointerEvents = on ? '' : 'none';
+  });
+  toast('Профиль: ' + {aurora:'Работа', void:'Вечер', mesh:'Игра'}[name]);
+}
+
+/* =============== palette =============== */
+const pal = document.getElementById('palette');
+const palInput = document.getElementById('palInput');
+const palList = document.getElementById('palList');
+const isPaletteOpen = () => pal.classList.contains('open');
+function paletteOpen(){ return isPaletteOpen(); }
+
+const COMMANDS = [
+  ...Object.keys(W).map(k => ({
+    label: 'Добавить: ' + {clock:'Часы', weather:'Погода', sysmon:'Система', calendar:'Календарь',
+      notes:'Заметки', pomodoro:'Таймер', cron:'Cron', player:'Плеер', capture:'Захват'}[k],
+    tag:'виджет', run:() => addWidget(k)
+  })),
+  {label:'Вписать холст', tag:'вид', run:() => fit()},
+  {label:'Тема: тёмная / светлая', tag:'вид', run:() => document.querySelector('[data-act="theme"]').click()},
+  {label:'Режим: редактирование', tag:'холст', run:() => setMode('edit')},
+  {label:'Режим: заблокирован', tag:'холст', run:() => setMode('locked')},
+  {label:'Режим: сквозной', tag:'холст', run:() => setMode('pass')},
+  {label:'Рисование по холсту', tag:'инструмент', run:() => document.querySelector('[data-act="ink"]').click()},
+  {label:'Скриншот региона', tag:'система', run:() => { toast('Регион → аннотации'); flash(); }},
+  {label:'Профиль: Игра', tag:'профиль', run:() => applyProfile('mesh')},
+];
+let selIdx = 0, filtered = COMMANDS;
+
+function renderPal(q = '') {
+  const s = q.toLowerCase().trim();
+  filtered = COMMANDS.filter(c => c.label.toLowerCase().includes(s));
+  selIdx = 0;
+  palList.innerHTML = filtered.map((c, i) =>
+    `<li class="${i===0?'sel':''}"><span>${c.label}</span><em>${c.tag}</em></li>`).join('')
+    || '<li style="opacity:.5;cursor:default">Ничего не найдено</li>';
+}
+function openPalette(forAdd) {
+  pal.classList.add('open');
+  palInput.value = forAdd ? 'Добавить: ' : '';
+  renderPal(palInput.value);
+  setTimeout(() => { palInput.focus(); palInput.select(); }, 30);
+}
+function closePalette() { pal.classList.remove('open'); }
+palInput.addEventListener('input', () => renderPal(palInput.value));
+pal.addEventListener('pointerdown', e => { if (e.target === pal) closePalette(); });
+palInput.addEventListener('keydown', e => {
+  if (e.key === 'Escape') return closePalette();
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    selIdx = Math.max(0, Math.min(filtered.length - 1, selIdx + (e.key === 'ArrowDown' ? 1 : -1)));
+    palList.querySelectorAll('li').forEach((li, i) => li.classList.toggle('sel', i === selIdx));
+    palList.children[selIdx]?.scrollIntoView({block:'nearest'});
+  }
+  if (e.key === 'Enter') {
+    const c = filtered[selIdx];
+    if (c) { closePalette(); c.run(); }
+  }
+});
+
+/* =============== add widget =============== */
+let seed = 0;
+function addWidget(kind) {
+  const occupied = [...world.querySelectorAll('.widget')].map(el => ({
+    x: parseFloat(el.style.left), y: parseFloat(el.style.top)
+  }));
+  let x = 80 + (seed % 4) * 40, y = 120 + (seed % 4) * 30;
+  seed++;
+  const el = makeWidget(kind, x, y);
+  el.animate([{opacity:0, transform:'scale(.96)'}, {opacity:1, transform:'scale(1)'}],
+    {duration:220, easing:'cubic-bezier(.2,.8,.2,1)'});
+  loop();
+  save();
+  toast('Добавлено: ' + {clock:'часы', weather:'погода', sysmon:'система', calendar:'календарь',
+    notes:'заметки', pomodoro:'таймер', cron:'cron', player:'плеер', capture:'захват'}[kind]);
+}
+
+/* =============== ink =============== */
+const ink = document.getElementById('ink');
+const ctx = ink.getContext('2d');
+function sizeInk() { ink.width = innerWidth * devicePixelRatio; ink.height = innerHeight * devicePixelRatio;
+  ink.style.width = innerWidth + 'px'; ink.style.height = innerHeight + 'px';
+  ctx.scale(devicePixelRatio, devicePixelRatio); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; }
+sizeInk();
+addEventListener('resize', sizeInk);
+let drawing = false;
+ink.addEventListener('pointerdown', e => {
+  if (document.documentElement.dataset.ink !== 'on') return;
+  drawing = true;
+  ctx.beginPath(); ctx.moveTo(e.clientX, e.clientY);
+});
+ink.addEventListener('pointermove', e => {
+  if (!drawing) return;
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+  ctx.lineWidth = 2.2; ctx.globalAlpha = .85;
+  ctx.lineTo(e.clientX, e.clientY); ctx.stroke();
+});
+addEventListener('pointerup', () => { drawing = false; });
+addEventListener('dblclick', e => {
+  if (document.documentElement.dataset.ink === 'on' && !e.target.closest('.widget')) {
+    ctx.clearRect(0, 0, ink.width, ink.height);
+  }
+});
+
+/* =============== toast / flash =============== */
+let toastT;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), 1900);
+}
+function flash() {
+  const f = document.createElement('div');
+  f.style.cssText = `position:fixed;inset:0;z-index:65;pointer-events:none;background:#fff;
+    opacity:.28;transition:opacity .4s ease`;
+  document.body.appendChild(f);
+  requestAnimationFrame(() => f.style.opacity = 0);
+  setTimeout(() => f.remove(), 450);
+}
+
+/* =============== persist =============== */
+function save() {
+  const data = [...world.querySelectorAll('.widget')].map(el => ({
+    id: el.dataset.id, x: parseFloat(el.style.left), y: parseFloat(el.style.top),
+    w: el.offsetWidth
+  }));
+  try { localStorage.setItem('vela.layout', JSON.stringify(data)); } catch {}
+}
+function load() {
+  let data = null;
+  try { data = JSON.parse(localStorage.getItem('vela.layout') || 'null'); } catch {}
+  if (!data || !data.length) {
+    const els = LAYOUT.map(([id, col]) => makeWidget(id, X(col), 0));
+    /* masonry: стопка по колонкам с шагом 24 */
+    const colY = {};
+    els.forEach((el, i) => {
+      const col = LAYOUT[i][1];
+      colY[col] = colY[col] || 0;
+      el.style.top = colY[col] + 'px';
+      colY[col] += el.offsetHeight + GAP;
+    });
+  } else {
+    data.forEach(d => { if (W[d.id]) makeWidget(d.id, d.x, d.y, {w:d.w}); });
+  }
+}
+
+/* =============== scene parallax =============== */
+const blobs = [...document.querySelectorAll('.blob')];
+let pxr = 0, pyr = 0, cxr = 0, cyr = 0;
+addEventListener('pointermove', e => {
+  pxr = (e.clientX / innerWidth - .5) * 2;
+  pyr = (e.clientY / innerHeight - .5) * 2;
+});
+(function glide() {
+  cxr += (pxr - cxr) * 0.045;
+  cyr += (pyr - cyr) * 0.045;
+  blobs.forEach((b, i) => {
+    const d = (i + 1) * 9;
+    b.style.marginLeft = (-cxr * d) + 'px';
+    b.style.marginTop = (-cyr * d) + 'px';
+  });
+  requestAnimationFrame(glide);
+})();
+
+/* =============== boot =============== */
+load();
+setMode('edit');
+requestAnimationFrame(() => fit());
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fit());
+toast('Холст готов · wheel — зум, drag — пан, ⌘K — палитра');
+setTimeout(() => document.getElementById('hints').classList.add('hide'), 9000);
+addEventListener('pointerdown', () => document.getElementById('hints').classList.add('hide'), {once:true});
+addEventListener('keydown', () => document.getElementById('hints').classList.add('hide'), {once:true});
+</script>
+</body>
+</html>
