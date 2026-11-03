@@ -37,5 +37,7 @@
 
 ## Инструменты
 
-`bench/` (в репозитории кода): `memory.ps1`, `cpu.ps1`, `startup.ps1`, `soak.ps1`,
-`glass_bench.rs`. Каждый пишет CSV в `bench/out/`, CI хранит артефакты 90 дней.
+`bench/` появится в T-0802 (P8). До этого замеры NFR **не воспроизводимы**:
+скриптов `memory.ps1`, `cpu.ps1`, `startup.ps1`, `soak.ps1`,
+`glass_bench.rs` в репозитории нет. Каждый скрипт должен писать CSV в
+`bench/out/`; CI хранит артефакты 90 дней.

@@ -2,7 +2,7 @@
 id: ST-0102-03
 parent: T-0102
 title: Обёртка invoke и реестр событий в UI
-status: ready
+status: in-progress
 est: 0.4d
 owner: ui
 depends: [ST-0102-02]
@@ -23,7 +23,9 @@ UI не вызывает `@tauri-apps/api` напрямую; все вызовы
    кольцевой буфер на 200 записей (полезно для баг-репорта).
 3. `shared/api/events.ts`: `EventMap` с типизированным `on<E>()`, автоочистка
    подписок через `useEffect`-хелпер `useEvent`.
-4. Dev-валидация payload: медленный `zod`-парсер только в `import.meta.env.DEV`.
+4. Dev-валидация payload: отложена до P2 (`D-18`) — в P1 нет транспорта и
+   реальных команд, валидировать нечего. При появлении первой команды
+   добавить медленный `zod`-парсер только в `import.meta.env.DEV`.
 5. Запрет прямого импорта `@tauri-apps/api/core` — ESLint `no-restricted-imports`.
 
 ## Критерии приёмки

@@ -2,7 +2,7 @@
 id: ST-0101-01
 parent: T-0101
 title: Cargo workspace и структура крейтов
-status: ready
+status: in-progress
 est: 0.3d
 owner: rust
 depends: []

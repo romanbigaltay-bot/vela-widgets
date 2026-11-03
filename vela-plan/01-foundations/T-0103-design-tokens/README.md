@@ -2,7 +2,7 @@
 id: T-0103
 stage: P1
 title: Дизайн-токены, темы, ThemeService
-status: ready
+status: planned
 est: 1.0d
 owner: ui
 depends: [T-0101]

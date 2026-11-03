@@ -2,7 +2,7 @@
 id: ST-0101-02
 parent: T-0101
 title: Vite + React + TS со строгим tsconfig
-status: ready
+status: in-progress
 est: 0.3d
 owner: ui
 depends: [ST-0101-01]

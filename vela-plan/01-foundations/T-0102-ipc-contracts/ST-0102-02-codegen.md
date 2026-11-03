@@ -2,7 +2,7 @@
 id: ST-0102-02
 parent: T-0102
 title: Кодоген TS и CI-проверка
-status: ready
+status: in-progress
 est: 0.3d
 owner: rust
 depends: [ST-0102-01]
@@ -16,19 +16,24 @@ depends: [ST-0102-01]
 
 ## Реализация
 
-1. `crates/vela-ipc/tests/export.rs`: вызов `T::export_all_to("ui/src/shared/api")`.
-2. Скрипт `pnpm ipc:gen`: `cargo test -p vela-ipc --features ts-export export`.
-3. В сгенерированном каталоге — `index.ts`, который реэкспортирует все типы
-   и `INVOKE_MAP` (имя команды → тип request/response).
-4. CI-шаг: `pnpm ipc:gen && git diff --exit-code -- ui/src/shared/api` —
-   падает, если типы не перегенерированы.
+1. `crates/vela-ipc/tests/export_bindings.rs`: вызов `T::export_all_to("ui/src/shared/api")`.
+   `ts-rs` создаёт по файлу на тип; имена перечислены в `contract.json`.
+2. Скрипт `pnpm ipc:gen`: `node scripts/ipc-gen.mjs`, который читает
+   `contract.json` и запускает `cargo test -p vela-ipc --features ts-export
+   --test export_bindings`.
+3. Рукописный `index.ts` реэкспортирует сгенерированные типы. `InvokeMap`
+   объявлен в `commands.ts` как расширяемый реестр; команды добавляются в него
+   вместе с потребителем (P2+), а не генерируются заранее.
+4. CI-шаг: `pnpm ipc:check` — скрипт снимает слепок до/после генерации и падает,
+   если набор или содержимое файлов изменились.
 5. Правило: файлы в `api/` не редактируются вручную; в шапке — комментарий.
 
 ## Критерии приёмки
 
 - AC-1 Повторный `pnpm ipc:gen` даёт пустой дифф.
 - AC-2 Переименование поля в Rust → `tsc --noEmit` падает на UI-потребителе.
-- AC-3 В `INVOKE_MAP` присутствуют все команды из `commands/`.
+- AC-3 Все команды, добавленные в `InvokeMap`, имеют типы request/response.
+  В P1 команд нет; проверка становится содержательной с первой командой P2.
 
 ## Тест-план
 

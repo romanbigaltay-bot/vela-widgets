@@ -2,7 +2,7 @@
 id: ST-0104-01
 parent: T-0104
 title: Слой БД, подключение, PRAGMA
-status: ready
+status: in-progress
 est: 0.3d
 owner: rust
 ---
@@ -21,8 +21,9 @@ owner: rust
    `busy_timeout=3000`, `temp_store=MEMORY`.
 3. Проверка целостности: `PRAGMA quick_check`; при ошибке — переименовать файл
    в `.corrupt-<ts>`, создать новый, вернуть `DbRecovered { backup_path }`.
-4. `Db` держит `Connection` в выделенном потоке; API — `spawn_blocking`-обёртки,
-   чтобы не блокировать tokio-рантайм.
+4. `Db` держит `Connection` в выделенном потоке-владельце; API — `Db::call`
+   через `std::sync::mpsc`. Токio в `vela-core` не добавляется: домен должен
+   тестироваться без рантайма (D-7, ADR-0005).
 5. `Db::flush()` для синхронной записи при выходе.
 
 ## Критерии приёмки
@@ -38,5 +39,5 @@ Unit на `tempfile`; отдельный тест на «мусорный» фа
 
 ## Риски
 
-`spawn_blocking` + `Mutex<Connection>` могут сериализовать всё; при росте
-нагрузки — пул соединений (`r2d2_sqlite`).
+`Db::call` сериализует доступ к одному соединению; при росте нагрузки —
+пул соединений (`r2d2_sqlite`), но только вместе с потребителем.

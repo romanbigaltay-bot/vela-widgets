@@ -1,21 +1,21 @@
 {
   "project": "Vela",
   "plan_root": "vela-plan",
-  "generated": "2026-10-28",
+  "generated": "2026-11-02",
   "stages": [
     {
       "id": "P1",
       "name": "Каркас и контракты",
       "folder": "01-foundations",
       "gate": "G1",
-      "est_days": 4.0,
+      "est_days": 4,
       "tasks": [
         {
           "id": "T-0101",
           "title": "T-0101 — Репозиторий, workspace, toolchain, CI",
           "folder": "01-foundations/T-0101-repo-toolchain",
           "priority": "P0",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "both",
           "depends": [],
           "subtasks": [
@@ -25,14 +25,14 @@
             "ST-0101-04-ci.md"
           ],
           "n_subtasks": 4,
-          "status": "ready"
+          "status": "in-progress"
         },
         {
           "id": "T-0102",
           "title": "T-0102 — Контракты IPC и генерация TS-типов",
           "folder": "01-foundations/T-0102-ipc-contracts",
           "priority": "P0",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "rust",
           "depends": [
             "T-0101"
@@ -43,14 +43,14 @@
             "ST-0102-03-invoke-wrapper.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "in-progress"
         },
         {
           "id": "T-0103",
           "title": "T-0103 — Дизайн-токены, темы, ThemeService",
           "folder": "01-foundations/T-0103-design-tokens",
           "priority": "P0",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "ui",
           "depends": [
             "T-0101"
@@ -61,14 +61,14 @@
             "ST-0103-03-glass-primitive.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0104",
           "title": "T-0104 — SQLite-схема, миграции, репозитории",
           "folder": "01-foundations/T-0104-sqlite",
           "priority": "P0",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "rust",
           "depends": [
             "T-0101"
@@ -79,17 +79,17 @@
             "ST-0104-03-repositories.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "in-progress"
         }
       ],
-      "est_rollup": 4.0
+      "est_rollup": 4
     },
     {
       "id": "P2",
       "name": "Оболочка: окна и поверхности",
       "folder": "02-shell",
       "gate": "G2",
-      "est_days": 8.0,
+      "est_days": 8,
       "tasks": [
         {
           "id": "T-0201",
@@ -109,14 +109,14 @@
             "ST-0201-03-single-instance.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0202",
           "title": "T-0202 — Поверхность A (сцена)",
           "folder": "02-shell/T-0202-workerw-scene",
           "priority": "P0",
-          "est_days": 2.0,
+          "est_days": 2,
           "owner": "rust",
           "depends": [
             "T-0201"
@@ -127,14 +127,14 @@
             "ST-0202-03-explorer-recovery.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0203",
           "title": "T-0203 — Поверхность B (UI)",
           "folder": "02-shell/T-0203-ui-surface",
           "priority": "P0",
-          "est_days": 2.0,
+          "est_days": 2,
           "owner": "rust",
           "depends": [
             "T-0201"
@@ -145,7 +145,7 @@
             "ST-0203-03-modes-focus.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0204",
@@ -164,14 +164,14 @@
             "ST-0204-03-session-events.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0205",
           "title": "T-0205 — Поверхность C и хоткеи",
           "folder": "02-shell/T-0205-overlay-hotkeys",
           "priority": "P1",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "rust",
           "depends": [
             "T-0203"
@@ -181,24 +181,24 @@
             "ST-0205-02-hotkeys.md"
           ],
           "n_subtasks": 2,
-          "status": "ready"
+          "status": "planned"
         }
       ],
-      "est_rollup": 8.0
+      "est_rollup": 8
     },
     {
       "id": "P3",
       "name": "Бесконечный холст",
       "folder": "03-canvas",
       "gate": "G3",
-      "est_days": 9.0,
+      "est_days": 9,
       "tasks": [
         {
           "id": "T-0301",
           "title": "T-0301 — Мир и вьюпорт",
           "folder": "03-canvas/T-0301-world-viewport",
           "priority": "P0",
-          "est_days": 2.0,
+          "est_days": 2,
           "owner": "ui",
           "depends": [
             "T-0103",
@@ -211,14 +211,14 @@
             "ST-0301-04-render-loop.md"
           ],
           "n_subtasks": 4,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0302",
           "title": "T-0302 — Модель раскладки",
           "folder": "03-canvas/T-0302-layout-model",
           "priority": "P0",
-          "est_days": 2.0,
+          "est_days": 2,
           "owner": "rust+ui",
           "depends": [
             "T-0301",
@@ -231,7 +231,7 @@
             "ST-0302-04-orphaned.md"
           ],
           "n_subtasks": 4,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0303",
@@ -250,7 +250,7 @@
             "ST-0303-04-zorder-keys.md"
           ],
           "n_subtasks": 4,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0304",
@@ -268,14 +268,14 @@
             "ST-0304-03-degradation-budget.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0305",
           "title": "T-0305 — Профили",
           "folder": "03-canvas/T-0305-profiles",
           "priority": "P1",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "rust+ui",
           "depends": [
             "T-0302"
@@ -285,17 +285,17 @@
             "ST-0305-02-activate.md"
           ],
           "n_subtasks": 2,
-          "status": "ready"
+          "status": "planned"
         }
       ],
-      "est_rollup": 9.0
+      "est_rollup": 9
     },
     {
       "id": "P4",
       "name": "Рантайм виджетов и базовые модули",
       "folder": "04-widget-core",
       "gate": "G4",
-      "est_days": 8.0,
+      "est_days": 8,
       "tasks": [
         {
           "id": "T-0401",
@@ -315,7 +315,7 @@
             "ST-0401-04-visibility.md"
           ],
           "n_subtasks": 4,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0402",
@@ -334,14 +334,14 @@
             "ST-0402-03-add-placing.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0403",
           "title": "T-0403 — Часы",
           "folder": "04-widget-core/T-0403-clock",
           "priority": "P0",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "ui",
           "depends": [
             "T-0402"
@@ -352,7 +352,7 @@
             "ST-0403-03-analog.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0404",
@@ -371,7 +371,7 @@
             "ST-0404-03-text-md.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0405",
@@ -389,24 +389,24 @@
             "ST-0405-03-notify-sound.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         }
       ],
-      "est_rollup": 8.0
+      "est_rollup": 8
     },
     {
       "id": "P5",
       "name": "Захват экрана, аннотации, pin",
       "folder": "05-capture",
       "gate": "G5",
-      "est_days": 6.0,
+      "est_days": 6,
       "tasks": [
         {
           "id": "T-0501",
           "title": "T-0501 — Захват через WGC",
           "folder": "05-capture/T-0501-wgc-capture",
           "priority": "P0",
-          "est_days": 2.0,
+          "est_days": 2,
           "owner": "rust",
           "depends": [
             "T-0205",
@@ -418,7 +418,7 @@
             "ST-0501-03-capture-ipc.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0502",
@@ -437,7 +437,7 @@
             "ST-0502-03-confirm-flow.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0503",
@@ -455,14 +455,14 @@
             "ST-0503-03-privacy-export.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0504",
           "title": "T-0504 — Pin и OCR",
           "folder": "05-capture/T-0504-pin-ocr",
           "priority": "P1",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "ui+rust",
           "depends": [
             "T-0503",
@@ -474,17 +474,17 @@
             "ST-0504-03-history.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         }
       ],
-      "est_rollup": 6.0
+      "est_rollup": 6
     },
     {
       "id": "P6",
       "name": "Живой фон",
       "folder": "06-scene",
       "gate": "G6",
-      "est_days": 9.0,
+      "est_days": 9,
       "tasks": [
         {
           "id": "T-0601",
@@ -504,14 +504,14 @@
             "ST-0601-04-transitions.md"
           ],
           "n_subtasks": 4,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0602",
           "title": "T-0602 — Фото и видео",
           "folder": "06-scene/T-0602-photo-video",
           "priority": "P0",
-          "est_days": 2.0,
+          "est_days": 2,
           "owner": "ui",
           "depends": [
             "T-0601"
@@ -522,7 +522,7 @@
             "ST-0602-03-video.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0603",
@@ -540,14 +540,14 @@
             "ST-0603-03-flow-particles.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0604",
           "title": "T-0604 — Аудио и игра",
           "folder": "06-scene/T-0604-audio-game",
           "priority": "P1",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "ui+rust",
           "depends": [
             "T-0603",
@@ -559,14 +559,14 @@
             "ST-0604-03-game-skeleton.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0605",
           "title": "T-0605 — Энергополитика",
           "folder": "06-scene/T-0605-power-scene",
           "priority": "P0",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "rust+ui",
           "depends": [
             "T-0602",
@@ -578,17 +578,17 @@
             "ST-0605-03-indicator.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         }
       ],
-      "est_rollup": 9.0
+      "est_rollup": 9
     },
     {
       "id": "P7",
       "name": "Экосистема модулей",
       "folder": "07-modules",
       "gate": "G7",
-      "est_days": 7.0,
+      "est_days": 7,
       "tasks": [
         {
           "id": "T-0701",
@@ -607,14 +607,14 @@
             "ST-0701-03-widget.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0702",
           "title": "T-0702 — Системный монитор",
           "folder": "07-modules/T-0702-sysmon",
           "priority": "P0",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "rust+ui",
           "depends": [
             "T-0402"
@@ -625,14 +625,14 @@
             "ST-0702-03-top-processes.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0703",
           "title": "T-0703 — Погода",
           "folder": "07-modules/T-0703-weather",
           "priority": "P1",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "ui+rust",
           "depends": [
             "T-0402"
@@ -643,7 +643,7 @@
             "ST-0703-03-city-settings.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0704",
@@ -662,14 +662,14 @@
             "ST-0704-03-widget-editor.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0705",
           "title": "T-0705 — Плеер",
           "folder": "07-modules/T-0705-player",
           "priority": "P1",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "rust+ui",
           "depends": [
             "T-0402",
@@ -681,14 +681,14 @@
             "ST-0705-03-viz-empty.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0706",
           "title": "T-0706 — Палитра и буфер",
           "folder": "07-modules/T-0706-command-palette",
           "priority": "P0",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "ui+rust",
           "depends": [
             "T-0402",
@@ -700,17 +700,17 @@
             "ST-0706-03-ticker.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         }
       ],
-      "est_rollup": 7.0
+      "est_rollup": 7
     },
     {
       "id": "P8",
       "name": "Упрочнение и релиз",
       "folder": "08-release",
       "gate": "G8",
-      "est_days": 6.0,
+      "est_days": 6,
       "tasks": [
         {
           "id": "T-0801",
@@ -729,14 +729,14 @@
             "ST-0801-03-rdp-vm.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0802",
           "title": "T-0802 — Производительность и soak",
           "folder": "08-release/T-0802-performance-soak",
           "priority": "P0",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "both",
           "depends": [
             "T-0301",
@@ -748,7 +748,7 @@
             "ST-0802-02-leaks.md"
           ],
           "n_subtasks": 2,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0803",
@@ -764,14 +764,14 @@
             "ST-0803-03-uninstall.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0804",
           "title": "T-0804 — Настройки и онбординг",
           "folder": "08-release/T-0804-settings-onboarding",
           "priority": "P1",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "ui",
           "depends": [
             "T-0303",
@@ -783,14 +783,14 @@
             "ST-0804-03-a11y.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         },
         {
           "id": "T-0805",
           "title": "T-0805 — Наблюдаемость",
           "folder": "08-release/T-0805-observability",
           "priority": "P1",
-          "est_days": 1.0,
+          "est_days": 1,
           "owner": "rust",
           "depends": [],
           "subtasks": [
@@ -799,17 +799,17 @@
             "ST-0805-03-crash.md"
           ],
           "n_subtasks": 3,
-          "status": "ready"
+          "status": "planned"
         }
       ],
-      "est_rollup": 6.0
+      "est_rollup": 6
     }
   ],
   "totals": {
     "stages": 8,
     "tasks": 39,
     "subtasks": 120,
-    "days": 57.0,
-    "days_rollup": 57.0
+    "days": 57,
+    "days_rollup": 57
   }
 }

@@ -2,7 +2,7 @@
 id: ST-0103-01
 parent: T-0103
 title: Токены и базовая типографика
-status: ready
+status: planned
 est: 0.4d
 owner: ui
 ---

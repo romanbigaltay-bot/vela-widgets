@@ -2,7 +2,7 @@
 id: T-0101
 stage: P1
 title: Репозиторий, workspace, toolchain, CI
-status: ready
+status: in-progress
 est: 1.0d
 owner: both
 depends: []
@@ -10,6 +10,19 @@ gate: G1
 ---
 
 # T-0101 — Репозиторий, workspace, toolchain, CI
+
+## 0. Фактическое состояние (2026-11-02)
+
+Каркас создан, но задача не закрыта:
+
+- репозиторий — монорепозиторий `vela-vijets`; CI перенесён в корневой
+  `.github/workflows/ci.yml`, команды выполняются с `working-directory: vela-app`;
+- первый коммит — `57fb5a0`; удалённого репозитория нет, CI ни разу не
+  запускался, защита ветки не настроена (AC-6);
+- Tauri-конфиг и `bench/` не созданы: это P2 (`T-0201`) и P8 (`T-0802`);
+- проверки `cargo`/`pnpm` в текущем окружении не перепроверены.
+
+Поэтому статус — `in-progress`, а не `done`.
 
 ## 1. Цель и границы
 
@@ -37,7 +50,7 @@ vela/
 │   │   ├── shared/          # ui-kit, hooks, lib
 │   │   └── styles/          # tokens, base, glass
 │   └── package.json
-├── bench/                   # скрипты замеров (PS1/Rust)
+├── bench/                   # замеры: появятся в P8 (T-0802), в P1 отсутствуют
 └── docs/                    # ссылка на этот план
 ```
 

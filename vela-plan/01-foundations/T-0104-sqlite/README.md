@@ -2,7 +2,7 @@
 id: T-0104
 stage: P1
 title: SQLite-схема, миграции, репозитории
-status: ready
+status: in-progress
 est: 1.0d
 owner: rust
 depends: [T-0101]
@@ -10,6 +10,20 @@ gate: G1
 ---
 
 # T-0104 — SQLite-схема, миграции, репозитории
+
+## 0. Фактическое состояние (2026-11-02)
+
+Слой БД, миграции и два репозитория существуют, но задача не закрыта:
+
+- в коде есть `ElementsRepo` и `SettingsRepo`; остальные четыре репозитория
+  отложены до появления потребителя (D-13);
+- фикстура `migrations/fixtures/v0_empty.db` для TC-0104-02 отсутствует;
+- в текущем окружении нет `cargo`, поэтому статически 84 `#[test]` в
+  `vela-core` не прогнаны;
+- фактическая схема — 8 таблиц в `0001_init.sql` плюс bootstrap-таблица
+  `schema_migrations` (D-9).
+
+Статус — `in-progress` до прогона AC и добавления фикстуры.
 
 ## 1. Цель
 
@@ -19,65 +33,27 @@ gate: G1
 
 ## 2. Схема v1
 
-```sql
--- settings: единый key-value с типизированным JSON
-CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at INTEGER NOT NULL);
+Единственный источник DDL — `vela-app/crates/vela-core/migrations/0001_init.sql`.
+Не дублируй его здесь: копия уже расходилась с кодом.
 
--- monitors: геометрия на момент запуска, для восстановления раскладки
-CREATE TABLE monitors (
-  id TEXT PRIMARY KEY, x INTEGER, y INTEGER, w INTEGER, h INTEGER,
-  scale REAL, primary_ BOOLEAN, last_seen INTEGER
-);
-
--- profiles: набор сцены + раскладки
-CREATE TABLE profiles (
-  id TEXT PRIMARY KEY, name TEXT NOT NULL, scene_json TEXT NOT NULL,
-  is_active BOOLEAN DEFAULT 0, sort INTEGER DEFAULT 0
-);
-
--- elements: всё, что лежит на холсте
-CREATE TABLE elements (
-  id TEXT PRIMARY KEY,
-  kind TEXT NOT NULL,            -- 'widget'|'pin'|'note'|'ink'|'group'
-  widget_id TEXT,                -- 'core.clock' для kind='widget'
-  monitor_id TEXT NOT NULL,
-  profile_id TEXT,               -- NULL = во всех профилях
-  x REAL NOT NULL, y REAL NOT NULL,
-  w REAL NOT NULL, h REAL NOT NULL,
-  z INTEGER NOT NULL DEFAULT 0,
-  rotation REAL DEFAULT 0,
-  settings_json TEXT NOT NULL DEFAULT '{}',
-  state_json TEXT NOT NULL DEFAULT '{}',
-  created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
-);
-CREATE INDEX idx_elements_monitor ON elements(monitor_id, profile_id);
-
--- notes: отдельно от elements (много текста, поиск)
-CREATE TABLE notes (element_id TEXT PRIMARY KEY REFERENCES elements(id) ON DELETE CASCADE,
-  title TEXT, body TEXT, checklist_json TEXT);
-
--- cron_jobs
-CREATE TABLE cron_jobs (id TEXT PRIMARY KEY, expr TEXT NOT NULL, action_json TEXT NOT NULL,
-  enabled BOOLEAN DEFAULT 1, next_fire_at INTEGER, last_fire_at INTEGER, catch_up BOOLEAN DEFAULT 1);
-
--- capture_history (метаданные, не сами файлы)
-CREATE TABLE capture_history (id TEXT PRIMARY KEY, path TEXT, rect_json TEXT,
-  created_at INTEGER, ocr_text TEXT);
-
--- schema_migrations
-CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, applied_at INTEGER NOT NULL);
-```
+Таблицы: `settings`, `monitors`, `profiles`, `elements`, `notes`, `cron_jobs`,
+`capture_history`, `cron_runs`. Плюс `schema_migrations` — bootstrap-таблица
+мигратора, единственный DDL вне миграций (D-9).
 
 ## 3. Решения
 
 - **WAL** включён (`PRAGMA journal_mode=WAL`), `synchronous=NORMAL`,
   `foreign_keys=ON`.
-- Миграции — простые SQL-файлы `migrations/0001_init.sql`, применяются по порядку
-  в транзакции, версия в `schema_migrations`. Откат не поддерживается (данные
-  пользователя), только forward-миграции + бэкап перед применением.
-- Репозитории: трейты в `vela-core::repo` (`Elements`, `Settings`, `Profiles`,
-  `Notes`), реализация на `rusqlite`, доступ через `Arc<Mutex<Connection>>`
-  в отдельном потоке (или пул `r2d2_sqlite` для параллельных чтений).
+- Миграции — SQL-файлы `migrations/0001_init.sql`, применяются по порядку,
+  по одной транзакции на файл, версия в `schema_migrations`. **Откат версии**
+  (down-миграция) не поддерживается: данные пользователя. При падении файла
+  мигратор откатывает транзакцию этого файла — это транзакционный rollback,
+  а не откат схемы (D-10). Перед обновлением делается бэкап.
+- Репозитории: трейты в `vela-core::repo`. В P1 реализованы `ElementsRepo` и
+  `SettingsRepo`; `ProfilesRepo`, `NotesRepo`, `CronRepo`, `CaptureRepo`
+  создаются в задачах, где появляется первый потребитель (D-13).
+- Доступ к БД — через поток-владелец и `Db::call` (`std::sync::mpsc`), без
+  tokio и без `Arc<Mutex<Connection>>` в домене (D-7).
 - Запись раскладки — одна транзакция на `pointerup`, дебаунс 250 мс; при
   закрытии приложения — синхронный flush.
 

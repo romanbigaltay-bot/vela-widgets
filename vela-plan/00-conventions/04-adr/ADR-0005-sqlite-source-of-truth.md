@@ -14,7 +14,13 @@
 
 ## Решение
 
-SQLite с WAL. Транзиентные изменения (перетаскивание) живут в Zustand и пишутся одной транзакцией на `pointerup` (дебаунс 250 мс). Таблицы: `elements`, `layouts`, `profiles`, `settings`, `notes`, `events`, `cron_jobs`, `capture_history`.
+SQLite с WAL. Транзиентные изменения (перетаскивание) живут в Zustand и пишутся одной транзакцией на `pointerup` (дебаунс 250 мс).
+
+Схема v1 (`0001_init.sql`): `settings`, `monitors`, `profiles`, `elements`,
+`notes`, `cron_jobs`, `capture_history`, `cron_runs`. Таблица
+`schema_migrations` создаётся мигратором как bootstrap-исключение (D-9).
+Отдельных `layouts` и `events` нет: раскладка — это `elements`, а события
+не персистятся.
 
 ## Последствия
 

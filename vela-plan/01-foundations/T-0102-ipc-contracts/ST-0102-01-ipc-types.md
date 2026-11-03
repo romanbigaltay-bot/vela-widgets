@@ -2,7 +2,7 @@
 id: ST-0102-01
 parent: T-0102
 title: Крейт vela-ipc: типы, конверт, ошибки
-status: ready
+status: in-progress
 est: 0.3d
 owner: rust
 ---

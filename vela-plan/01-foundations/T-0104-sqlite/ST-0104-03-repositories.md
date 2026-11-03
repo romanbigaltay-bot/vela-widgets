@@ -2,7 +2,7 @@
 id: ST-0104-03
 parent: T-0104
 title: Репозитории и тесты
-status: ready
+status: in-progress
 est: 0.4d
 owner: rust
 depends: [ST-0104-02]
@@ -16,13 +16,14 @@ depends: [ST-0104-02]
 
 ## Реализация
 
-1. Трейты: `SettingsRepo`, `ElementsRepo`, `ProfilesRepo`, `NotesRepo`,
-   `CronRepo`, `CaptureRepo` в `vela-core::repo`.
+1. Трейты: `SettingsRepo`, `ElementsRepo` — в P1; `ProfilesRepo`, `NotesRepo`,
+   `CronRepo`, `CaptureRepo` — вместе с первым потребителем (D-13):
+   T-0305, ST-0404-01, ST-0704-02, T-0504.
 2. Реализация на `rusqlite` с `params!`; все запросы — `prepare_cached`.
 3. `ElementsRepo::list_for_monitor(monitor, profile)` — единственная точка чтения
    раскладки; сортировка по `z`.
 4. `ElementsRepo::apply_patch(Vec<ElementPatch>)` — одна транзакция, возвращает
-   полное новое состояние (для рассылки в другие поверхности).
+   только затронутые элементы, не полный снимок монитора (D-15).
 5. Маппинг `row -> Element` в одном месте, тест на каждое поле.
 6. Все временные метки — `i64` миллисекунды UTC.
 

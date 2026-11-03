@@ -2,7 +2,7 @@
 id: ST-0103-02
 parent: T-0103
 title: ThemeService и анти-вспышка
-status: ready
+status: planned
 est: 0.3d
 owner: ui
 depends: [ST-0103-01]

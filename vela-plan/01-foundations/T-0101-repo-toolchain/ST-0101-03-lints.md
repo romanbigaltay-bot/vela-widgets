@@ -2,7 +2,7 @@
 id: ST-0101-03
 parent: T-0101
 title: Линты и форматирование
-status: ready
+status: in-progress
 est: 0.2d
 owner: both
 depends: [ST-0101-01, ST-0101-02]
