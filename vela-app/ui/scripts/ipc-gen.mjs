@@ -27,22 +27,22 @@ const checkOnly = process.argv.includes('--check');
  * Файлы, которые живут в каталоге контрактов, но пишутся руками.
  * Они не участвуют в сравнении: иначе `--check` будет считать их «удалёнными»
  * при каждой генерации, потому что ts-rs их не создаёт.
+ *
+ * Список читается из crates/vela-ipc/contract.json — того же манифеста,
+ * который используют Rust-тесты. Дублировать его здесь нельзя: расхождение
+ * означало бы, что один инструмент считает файл чужим и удаляет его.
  */
-// Список обязан совпадать с HANDWRITTEN в
-// crates/vela-ipc/tests/export_bindings.rs: расхождение означает, что один
-// из двух инструментов считает файл чужим и удаляет его.
-const HANDWRITTEN = new Set([
-  'index.ts',
-  'client.ts',
-  'client.test.ts',
-  'events.ts',
-  'events.test.ts',
-  'commands.ts',
-  'transport.ts',
-  'version.ts',
-  'useEvent.ts',
-  'useEvent.test.ts',
-]);
+const contractPath = join(repoRoot, 'crates', 'vela-ipc', 'contract.json');
+const contract = JSON.parse(readFileSync(contractPath, 'utf8'));
+if (!Array.isArray(contract.handwritten) || !Array.isArray(contract.generated)) {
+  throw new Error('contract.json: ожидались массивы handwritten и generated');
+}
+if (resolve(repoRoot, contract.dir) !== outDir) {
+  throw new Error(
+    `contract.json: dir=${contract.dir} не совпадает с каталогом генерации ${outDir}`,
+  );
+}
+const HANDWRITTEN = new Set(contract.handwritten);
 
 /** Снимает слепок сгенерированных файлов: имя → содержимое. */
 function snapshot(dir) {

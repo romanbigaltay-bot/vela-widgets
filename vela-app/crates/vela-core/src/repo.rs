@@ -36,9 +36,9 @@ const ELEMENT_COLUMNS: &str = "id, kind, widget_id, monitor_id, profile_id, \
 /// тест `mapping_covers_all_columns` это поймает.
 fn element_from_row(row: &Row<'_>) -> rusqlite::Result<Element> {
     let kind_str: String = row.get(1)?;
-    // Неизвестный вид не должен ронять чтение всей раскладки: элемент из более
-    // новой версии попадёт в `widget`-заглушку и будет виден пользователю
-    // как «неизвестный элемент», а не как пустой экран.
+    // Неизвестный вид не должен ронять чтение всей раскладки. Пока он
+    // маскируется под `Widget` (D-14): элемент остаётся видимым, но выглядит
+    // как виджет. Заменить на `ElementKind::Unknown` — в ST-0302-01.
     let kind = ElementKind::from_str_opt(&kind_str).unwrap_or(ElementKind::Widget);
 
     let settings_str: String = row.get(11)?;
@@ -77,8 +77,11 @@ pub trait ElementsRepo {
     /// Один элемент по идентификатору.
     fn get(&self, id: &str) -> Result<Option<Element>, CoreError>;
 
-    /// Применяет набор изменений атомарно и возвращает новое состояние
-    /// затронутых мониторов.
+    /// Применяет набор изменений атомарно и возвращает затронутые элементы.
+    ///
+    /// Это не полный снимок монитора: неизменённые элементы не пересылаются.
+    /// Полное состояние при необходимости читается через `list_for_monitor`
+    /// (см. D-15 в `vela-app/docs/STATUS.md`).
     fn apply_patch(&self, patches: Vec<ElementPatch>) -> Result<Vec<Element>, CoreError>;
 
     /// Удаляет элемент (каскадом уходят связанные данные).

@@ -1,8 +1,19 @@
+import { readFileSync } from 'node:fs';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
+
+// Список сгенерированных контрактов берётся из манифеста, а не дублируется
+// здесь: иначе новый тип начнёт линтоваться как рукописный код (или наоборот).
+const contract = JSON.parse(
+  readFileSync(new URL('../crates/vela-ipc/contract.json', import.meta.url), 'utf8'),
+);
+if (!Array.isArray(contract.generated) || !Array.isArray(contract.handwritten)) {
+  throw new Error('contract.json: ожидались массивы generated и handwritten');
+}
+const generatedContracts = contract.generated.map((name) => `src/shared/api/${name}`);
 
 /**
  * Линты фронтенда (ESLint 9, flat config).
@@ -14,7 +25,7 @@ import globals from 'globals';
  */
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'node_modules/**', 'src/shared/api/**/*.gen.ts'],
+    ignores: ['dist/**', 'node_modules/**', ...generatedContracts],
   },
 
   js.configs.recommended,

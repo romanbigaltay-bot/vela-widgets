@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 
 # Домен: типы, БД, миграции. ЗАПРЕЩЕНО добавлять сюда tauri/windows —
-# правило проверяется тестом tests/manifest_rules.rs и шагом CI arch-check.
+# правило проверяется тестом tests/arch_rules.rs и шагом CI arch-check.
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }

@@ -14,7 +14,6 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "ipc:gen": "node scripts/ipc-gen.mjs",
-    "size": "node scripts/size-report.mjs",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm format:check",
     "ipc:check": "node scripts/ipc-gen.mjs --check"
   },
