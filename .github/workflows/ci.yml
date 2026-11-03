@@ -5,8 +5,9 @@ name: ci
 # поэтому все команды выполняются с working-directory: vela-app.
 #
 # Пайплайн из 00-conventions/05-testing.md, сокращённый до того, что реально
-# существует в P1: линты, формат, типы, unit-тесты, архитектурные запреты.
-# Сборка бандла и e2e добавятся в ST-0101-04 по мере появления окна (T-0201).
+# существует в P1: линты, формат, типы, unit-тесты, архитектурные запреты и
+# покрытие. Сборка бандла и e2e добавятся в ST-0101-04 по мере появления окна
+# (T-0201).
 #
 # Linux-раннер выбран осознанно: vela-core, vela-ipc, vela-cron и весь UI
 # собираются без Win32, значит быстрый фидбэк дешевле. Windows-джоба
@@ -54,6 +55,29 @@ jobs:
 
       - name: arch-check
         run: bash scripts/arch-check.sh
+
+  coverage:
+    # D-17: покрытие должно измеряться, а не заявляться. На Windows-GNU
+    # profiler runtime отсутствует, поэтому измеряем на Linux-раннере.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vela-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: vela-app -> target
+
+      - uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: coverage
+        run: cargo llvm-cov --workspace --all-features --fail-under-lines 60
 
   ui:
     runs-on: ubuntu-latest

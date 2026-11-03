@@ -59,7 +59,7 @@ fn is_handwritten(name: &str) -> bool {
     handwritten().iter().any(|h| h == name)
 }
 
-/// Каталог, куда `ts-rs` пишет типы.
+/// Каталог, куда `ts-rs` пишет типы, если он задан.
 ///
 /// Относительный путь обязан резолвиться от корня workspace, а не от текущего
 /// каталога теста. Иначе `TS_RS_EXPORT_DIR=ui/src/shared/api` создаёт
@@ -67,19 +67,15 @@ fn is_handwritten(name: &str) -> bool {
 /// выглядит как настоящая и сбивает с толку при разборе.
 ///
 /// Уже абсолютный путь принимается как есть: `ipc-gen.mjs` передаёт именно
-/// такой.
-fn export_dir() -> PathBuf {
-    let raw = std::env::var("TS_RS_EXPORT_DIR").unwrap_or_else(|_| {
-        panic!(
-            "TS_RS_EXPORT_DIR не задан — запускайте генерацию через `pnpm ipc:gen` из ui/, \
-             а не напрямую через cargo"
-        )
-    });
+/// такой. Без переменной возвращается `None`: прямой `cargo test --all-features`
+/// не должен падать только потому, что ему не сказали, куда писать.
+fn export_dir() -> Option<PathBuf> {
+    let raw = std::env::var("TS_RS_EXPORT_DIR").ok()?;
     let path = PathBuf::from(raw);
     if path.is_absolute() {
-        return path;
+        return Some(path);
     }
-    workspace_root().join(path)
+    Some(workspace_root().join(path))
 }
 
 /// Корень репозитория: `<root>/crates/vela-ipc` → `<root>`.
@@ -180,7 +176,12 @@ fn no_stray_contract_files() {
     // `handwritten_files_are_never_touched` проверяет механизм («файлы из
     // списка не трогаются»), но не полноту списка — поэтому новый рукописный
     // файл проходил мимо него и ломался только в CI на JS-проверке.
-    let dir = export_dir();
+    // Без TS_RS_EXPORT_DIR проверять нечего: прямой `cargo test` не должен
+    // падать. Реальную проверку выполняет `pnpm ipc:check`, который задаёт
+    // переменную и сравнивает настоящий каталог контрактов.
+    let Some(dir) = export_dir() else {
+        return;
+    };
     let Ok(entries) = std::fs::read_dir(&dir) else {
         // Контракт ещё не сгенерирован: проверять нечего, и это не ошибка
         // (чистый клон до первого `pnpm ipc:gen`).
@@ -210,11 +211,13 @@ fn no_stray_contract_files() {
 
 #[test]
 fn id_bindings_are_plain_strings() {
-    let dir = export_dir();
-    std::fs::create_dir_all(&dir).expect("create export dir");
-    export_all(&dir);
+    // Проверка идёт во временном каталоге: тест не должен менять файлы,
+    // которые проверяет, и не должен зависеть от TS_RS_EXPORT_DIR.
+    let dir = tempfile::tempdir().expect("create temp dir");
+    export_all(dir.path());
 
-    let content = std::fs::read_to_string(dir.join("ElementId.ts")).expect("ElementId binding");
+    let content =
+        std::fs::read_to_string(dir.path().join("ElementId.ts")).expect("ElementId binding");
     assert!(
         content.contains("export type ElementId = string;"),
         "ElementId должен быть обычной строкой в TS, получено:\n{content}"
@@ -223,11 +226,12 @@ fn id_bindings_are_plain_strings() {
 
 #[test]
 fn error_code_binding_is_string_union() {
-    let dir = export_dir();
-    std::fs::create_dir_all(&dir).expect("create export dir");
-    export_all(&dir);
+    // Тот же принцип: временный каталог, реальные контракты не трогаем.
+    let dir = tempfile::tempdir().expect("create temp dir");
+    export_all(dir.path());
 
-    let content = std::fs::read_to_string(dir.join("ErrorCode.ts")).expect("ErrorCode binding");
+    let content =
+        std::fs::read_to_string(dir.path().join("ErrorCode.ts")).expect("ErrorCode binding");
     // UI обрабатывает коды как строковые литералы; числовой enum сломал бы
     // сопоставление в switch и в записях лога.
     for code in [
