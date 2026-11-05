@@ -8,18 +8,33 @@
     <meta name="color-scheme" content="dark light" />
     <title>Vela</title>
     <script>
-      // Тема применяется до первого кадра. Значение приходит из настроек
-      // (позже — из SQLite через Rust); пока — localStorage и системная тема.
+      // Тема применяется до первого кадра. Режим (dark/light/system) хранится
+      // отдельно от фактической темы: иначе data-theme="system" не совпадёт
+      // ни с одним набором токенов. Позже источником станет SQLite через Rust.
       (function () {
+        var root = document.documentElement;
+        var mode = 'system';
         try {
           var saved = localStorage.getItem('vela.theme');
-          var mode =
-            saved ||
-            (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-          document.documentElement.dataset.theme = mode;
+          if (saved === 'dark' || saved === 'light' || saved === 'system') {
+            mode = saved;
+          }
         } catch (e) {
-          document.documentElement.dataset.theme = 'dark';
+          // localStorage недоступен (приватный режим) — остаёмся в системном.
         }
+
+        var theme = mode;
+        if (mode === 'system') {
+          try {
+            theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+          } catch (e2) {
+            theme = 'dark';
+          }
+        }
+
+        root.dataset.theme = theme;
+        root.dataset.themeMode = mode;
+        root.style.colorScheme = theme;
       })();
     </script>
   </head>

@@ -2,7 +2,7 @@
 id: ST-0103-01
 parent: T-0103
 title: Токены и базовая типографика
-status: planned
+status: in-progress
 est: 0.4d
 owner: ui
 ---
@@ -15,26 +15,45 @@ owner: ui
 
 ## Реализация
 
-1. `tokens.css`: `:root[data-theme="dark"]`, `:root[data-theme="light"]` —
-   полный набор групп из README T-0103.
-2. `base.css`: `*{box-sizing:border-box}`, `html,body{margin:0;height:100%}`,
-   `body{background:var(--bg);color:var(--text);font:400 13px/1.45 var(--font)}`.
-3. Шрифт: `Inter Tight` вариативный, self-hosted (`woff2`, `font-display: swap`),
-   `--font` со стеком фолбэков на `Segoe UI Variable`.
-4. Шкала: классы `.t-caption .t-body .t-label .t-title .t-display .t-hero`
-   с фиксированными размером/весом/трекингом. Других размеров нет.
-5. `tabular-nums` включён глобально для элементов с классом `.num`.
+1. `tokens.css`: `:root`, `:root[data-theme="dark"]`, `:root[data-theme="light"]`.
+   Общие значения (пространство, радиусы, движение, шум, шрифт) вынесены в
+   `:root`, цвета и тени — в тематические блоки.
+2. `base.css`: сброс, фон, шрифт, фокус-кольцо, `prefers-reduced-motion`.
+   Конкретных цветов нет — только `var(--…)`.
+3. Шрифт: `Inter Tight` вариативный, self-hosted (`woff2`,
+   `font-display: swap`), кириллический и латинский сабсеты + `OFL.txt`;
+   `--font` со стеком фолбэков на `Segoe UI Variable`. Внешних CDN нет.
+4. Шкала: 7 классов `.t-micro .t-caption .t-label .t-body .t-title
+   .t-display .t-hero` с фиксированными размером/весом/трекингом. Других
+   размеров нет. `.t-micro` добавлен как седьмой размер: без него служебные
+   подписи получали произвольный `font-size` в компонентах.
+5. `tabular-nums` включается классом `.num`, а не глобально для всего текста.
+6. Пространство: 9 значений `--sp-1..--sp-9` = 4, 8, 12, 16, 20, 24, 32, 40,
+   48. Формулировка «4→48 шаг 4» дала бы 12 значений и не соответствовала
+   девяти токенам.
+7. Дополнительно к списку README: `--panel-solid` (фолбэк стекла),
+   `--track` (переключатели), `--shadow-hi` (elevation 2), `--glass-edge`
+   (светлая грань), `--accent-text` (текстовый акцент, проходящий AA).
 
 ## Критерии приёмки
 
 - AC-1 Все 7 размеров шкалы используются хотя бы раз в ui-kit-витрине.
-- AC-2 Шрифт грузится локально, запросов к внешним CDN нет (проверка в DevTools).
+  **Выполнено:** `KitPage.test.tsx` проверяет наличие каждого класса.
+- AC-2 Шрифт грузится локально, запросов к внешним CDN нет (проверка в
+  DevTools). **Частично:** `build` кладёт оба woff2 в `dist/assets`,
+  `theme-boot.test.ts` запрещает `fonts.googleapis.com`/`fonts.gstatic.com`;
+  живой DevTools не открывался.
 - AC-3 `--font` фолбэк-стек корректен без загруженного Inter Tight.
+  **Выполнено по коду:** `'Inter Tight', 'Segoe UI Variable', 'Segoe UI',
+  system-ui, sans-serif`.
 
 ## Тест-план
 
-Visual-скриншот витрины типографики в обеих темах; проверка отсутствия
-внешних запросов в e2e.
+- ✓ `tokens.test.ts`: полнота общих и тематических токенов, контраст,
+  отсутствие цветовых литералов вне `tokens.css`, обнуление движения.
+- ✓ `KitPage.test.tsx`: все 7 размеров присутствуют в витрине.
+- ✗ Visual-скриншот витрины типографики в обеих темах.
+- ✗ Проверка отсутствия внешних запросов в e2e/DevTools.
 
 ## Риски
 

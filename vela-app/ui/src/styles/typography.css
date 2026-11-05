@@ -1,0 +1,70 @@
+/**
+ * Типографическая шкала (ST-0103-01).
+ *
+ * Размеры заданы классами, а не произвольными `font-size` в компонентах:
+ * иначе к P4 в интерфейсе появится десяток «почти одинаковых» кеглей.
+ * Семь размеров — весь набор; micro используется только для служебных
+ * подписей, faint-цвет для него запрещён ниже 13 px по контрасту.
+ */
+
+.t-micro {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.t-caption {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+}
+
+.t-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+}
+
+.t-body {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+
+.t-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.t-display {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.t-hero {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+/* Числа в таблицах, таймерах и метриках не должны «прыгать» при обновлении. */
+.num {
+  font-variant-numeric: tabular-nums;
+}

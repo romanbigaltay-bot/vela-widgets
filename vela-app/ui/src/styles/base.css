@@ -1,24 +1,10 @@
 /**
- * Базовый слой стилей. Полные токены — T-0103; здесь только то, без чего
- * каркас нельзя проверить: фон, текст, шрифт, отсутствие скролла.
+ * Базовый слой: сброс, фон, шрифт, фокус.
+ *
+ * Конкретные значения цветов и движения — только в tokens.css. Здесь нет
+ * ни одного hex-цвета: иначе тема не переключится, а тест на «цвет вне
+ * токенов» начнёт падать законно.
  */
-
-:root {
-  /* Токены-заглушки P1. Значения совпадают с прототипом, чтобы не пришлось
-     переделывать при переносе дизайн-системы (см. PROTOTYPE.md). */
-  --bg: #0a0b0d;
-  --text: #e8eaed;
-  --text-dim: #9da4ae;
-  --accent: #7a9bff;
-  --font: 'Inter Tight', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
-}
-
-:root[data-theme='light'] {
-  --bg: #f7f8fa;
-  --text: #14171c;
-  --text-dim: #4e555f;
-  --accent: #4f6fe8;
-}
 
 * {
   box-sizing: border-box;
@@ -34,43 +20,72 @@ body {
   background: var(--bg);
   color: var(--text);
   font: 400 13px/1.45 var(--font);
+  font-optical-sizing: none;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   /* Окно приложения — не документ: прокрутки быть не должно. */
   overflow: hidden;
   transition:
-    background-color 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    color 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    background-color var(--dur-out) var(--ease),
+    color var(--dur-out) var(--ease);
 }
 
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+a {
+  color: var(--accent-text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/*
+ * Глобальный предохранитель: даже если компонент забыл про токены движения,
+ * при reduced-motion он не анимируется. Токены --dur-in/--dur-out при этом
+ * тоже обнулены.
+ */
 @media (prefers-reduced-motion: reduce) {
-  body {
-    transition: none;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
 .skeleton {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 48px;
-}
-
-.skeleton__title {
-  margin: 0;
-  font-size: 32px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  gap: var(--sp-6);
+  padding: var(--sp-9);
 }
 
 .skeleton__subtitle {
-  margin: 0;
   color: var(--text-dim);
 }
 
 .skeleton__grid {
   display: grid;
-  gap: 8px;
+  gap: var(--sp-2);
   margin: 0;
   max-width: 420px;
 }
@@ -78,10 +93,10 @@ body {
 .skeleton__row {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
-  padding: 8px 12px;
-  border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
-  border-radius: 10px;
+  gap: var(--sp-4);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-inner);
 }
 
 .skeleton__row dt {
@@ -90,5 +105,5 @@ body {
 
 .skeleton__row dd {
   margin: 0;
-  color: var(--accent);
+  color: var(--accent-text);
 }

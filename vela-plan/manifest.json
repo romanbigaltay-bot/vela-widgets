@@ -1,7 +1,7 @@
 {
   "project": "Vela",
   "plan_root": "vela-plan",
-  "generated": "2026-11-03",
+  "generated": "2026-11-05",
   "stages": [
     {
       "id": "P1",
@@ -61,7 +61,7 @@
             "ST-0103-03-glass-primitive.md"
           ],
           "n_subtasks": 3,
-          "status": "planned"
+          "status": "in-progress"
         },
         {
           "id": "T-0104",

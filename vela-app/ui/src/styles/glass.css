@@ -1,0 +1,119 @@
+/**
+ * Примитив стеклянной панели (ST-0103-03).
+ *
+ * `.glass` — единственный разрешённый способ сделать стекло. Вложенность
+ * запрещена: два blur-слоя дают грязный цвет и лишний проход композитора.
+ * Компонент `Glass` предупреждает об этом в dev.
+ *
+ * `backdrop-filter` — фолбэк для WebView2, а не основа стекла: в P3 появится
+ * blur mirror (ADR-0003). Если фильтр не поддержан, панель становится
+ * матовой, но не полупрозрачной.
+ */
+
+.glass {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-panel);
+  background: var(--glass-tint);
+  box-shadow: var(--shadow), var(--inner);
+  backdrop-filter: blur(var(--blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
+}
+
+/* Светлая грань сверху: отделяет панель от сцены, не добавляя второй blur. */
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--glass-edge), transparent 18%);
+  pointer-events: none;
+}
+
+/* Шум 3 %: убирает бандинг на больших однотонных поверхностях. */
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background-image: var(--glass-noise);
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+.glass--radius-chip {
+  border-radius: var(--radius-chip);
+}
+
+.glass--radius-inner {
+  border-radius: var(--radius-inner);
+}
+
+.glass--radius-panel {
+  border-radius: var(--radius-panel);
+}
+
+.glass--radius-pill {
+  border-radius: var(--radius-pill);
+}
+
+.glass--elev-0 {
+  box-shadow: var(--inner);
+}
+
+.glass--elev-1 {
+  box-shadow: var(--shadow), var(--inner);
+}
+
+.glass--elev-2 {
+  box-shadow: var(--shadow-hi), var(--inner);
+}
+
+.glass--pad-none {
+  padding: 0;
+}
+
+.glass--pad-sm {
+  padding: var(--sp-2);
+}
+
+.glass--pad-md {
+  padding: var(--sp-4);
+}
+
+.glass--pad-lg {
+  padding: var(--sp-6);
+}
+
+.glass--interactive {
+  cursor: pointer;
+  transition:
+    border-color var(--dur-in) var(--ease),
+    box-shadow var(--dur-out) var(--ease);
+}
+
+.glass--interactive:hover {
+  border-color: var(--stroke-hi);
+}
+
+.glass--interactive:active {
+  box-shadow: var(--inner);
+}
+
+.glass--interactive:focus-within {
+  border-color: var(--accent);
+}
+
+/*
+ * Без backdrop-filter честного стекла нет. Матовая подложка лучше, чем
+ * полупрозрачная «грязь» поверх обоев пользователя.
+ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: var(--panel-solid);
+  }
+}
