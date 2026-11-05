@@ -35,25 +35,37 @@
 :root {
   --font: 'Inter Tight', 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
 
+  /*
+   * Кегли: минимум 12 px, самый мелкий — micro (CAPS). Остальные уровни
+   * растут крупнее прежних 10–48, чтобы интерфейс не выглядел мелким.
+   */
+  --text-micro: 12px;
+  --text-caption: 14px;
+  --text-label: 15px;
+  --text-body: 16px;
+  --text-title: 24px;
+  --text-display: 36px;
+  --text-hero: 56px;
+
   /* Форма: chip — мелкое скругление, pill — полностью круглые кнопки дока. */
-  --radius-chip: 4px;
-  --radius-inner: 10px;
-  --radius-panel: 16px;
+  --radius-chip: 6px;
+  --radius-inner: 12px;
+  --radius-panel: 20px;
   --radius-pill: 999px;
 
   /*
-   * Пространство: 9 значений от 4 до 48. После 24 шаг растёт до 8, чтобы
-   * крупные отступы не превращались в лестницу из одинаковых 28/32/36.
+   * Пространство: 9 значений от 6 до 64. Шкала увеличена, чтобы панели и
+   * отступы дышали; после 24 шаг растёт, иначе крупные значения сливаются.
    */
-  --sp-1: 4px;
-  --sp-2: 8px;
-  --sp-3: 12px;
-  --sp-4: 16px;
-  --sp-5: 20px;
-  --sp-6: 24px;
-  --sp-7: 32px;
-  --sp-8: 40px;
-  --sp-9: 48px;
+  --sp-1: 6px;
+  --sp-2: 10px;
+  --sp-3: 14px;
+  --sp-4: 20px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 40px;
+  --sp-8: 48px;
+  --sp-9: 64px;
 
   --blur: 28px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -119,14 +131,17 @@
   --text: #14171c;
   --text-dim: #4e555f;
   --text-faint: #6e7681;
-  /* 4.61:1 на --accent. Прежний #0a0b0d давал 4.47 — ниже AA для 12 px. */
-  --text-on-accent: #050608;
+  /*
+   * Белый текст на акцентной заливке: 4.83:1. Акцент затемнён с #4f6fe8
+   * (там белый давал 4.40), чтобы пройти AA при кегле 15 px.
+   */
+  --text-on-accent: #ffffff;
 
-  --accent: #4f6fe8;
-  /* 4.78:1 на --bg; --accent даёт только 4.11 — для заливки и рамок. */
+  --accent: #4a68e0;
+  /* 4.78:1 на --bg; для ссылок и значений обычного кегля. */
   --accent-text: #4763dd;
-  --accent-soft: rgba(79, 111, 232, 0.1);
-  --accent-glow: rgba(79, 111, 232, 0.28);
+  --accent-soft: rgba(74, 104, 224, 0.1);
+  --accent-glow: rgba(74, 104, 224, 0.28);
   --ok: #1f8a5b;
   --warn: #a66a00;
   --danger: #c23b3b;
@@ -136,7 +151,7 @@
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 14px 40px -18px rgba(16, 24, 40, 0.3);
   --shadow-hi:
     0 1px 2px rgba(16, 24, 40, 0.08), 0 22px 60px -20px rgba(16, 24, 40, 0.35),
-    0 0 0 1px rgba(79, 111, 232, 0.22);
+    0 0 0 1px rgba(74, 104, 224, 0.22);
   --glow: 0 0 24px var(--accent-glow);
 
   --glass-tint: rgba(255, 255, 255, 0.72);

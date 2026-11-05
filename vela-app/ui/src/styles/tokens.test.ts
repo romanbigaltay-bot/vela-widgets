@@ -26,6 +26,7 @@ function findStylesDir(): string {
 
 const stylesDir = findStylesDir();
 const tokensCss = readFileSync(join(stylesDir, 'tokens.css'), 'utf8');
+const typographyCss = readFileSync(join(stylesDir, 'typography.css'), 'utf8');
 
 interface Rgba {
   readonly r: number;
@@ -36,6 +37,13 @@ interface Rgba {
 
 const COMMON_TOKENS = [
   'font',
+  'text-micro',
+  'text-caption',
+  'text-label',
+  'text-body',
+  'text-title',
+  'text-display',
+  'text-hero',
   'radius-chip',
   'radius-inner',
   'radius-panel',
@@ -215,6 +223,38 @@ describe('токены', () => {
     const body = media?.[1] ?? '';
     expect(token(body, 'dur-in')).toBe('0ms');
     expect(token(body, 'dur-out')).toBe('0ms');
+  });
+});
+
+describe('типографика', () => {
+  function fontSize(className: string): number {
+    const rule = new RegExp(`\\.${className}\\s*\\{([\\s\\S]*?)\\}`).exec(typographyCss);
+    if (!rule?.[1]) throw new Error(`не найдено правило .${className}`);
+    const reference = /font-size:\s*var\(--text-([a-z]+)\)/.exec(rule[1]);
+    if (!reference?.[1]) throw new Error(`.${className}: font-size не через --text-*`);
+    return Number.parseFloat(token(commonBlock(), `text-${reference[1]}`));
+  }
+
+  it('держит минимум 12 px и caption 14 px', () => {
+    const order = [
+      't-micro',
+      't-caption',
+      't-label',
+      't-body',
+      't-title',
+      't-display',
+      't-hero',
+    ] as const;
+    const sizes = order.map(fontSize);
+
+    expect(sizes[0]).toBe(12);
+    expect(sizes[1]).toBe(14);
+    for (const size of sizes) {
+      expect(size).toBeGreaterThanOrEqual(12);
+    }
+    for (let index = 1; index < sizes.length; index += 1) {
+      expect(sizes[index]).toBeGreaterThan(sizes[index - 1] ?? 0);
+    }
   });
 });
 

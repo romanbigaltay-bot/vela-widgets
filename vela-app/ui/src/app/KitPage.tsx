@@ -13,13 +13,13 @@ import {
 } from '@/shared/ui';
 
 const TYPE_SCALE = [
-  { className: 't-hero', name: 'hero', meta: '48 / 500' },
-  { className: 't-display', name: 'display', meta: '32 / 500' },
-  { className: 't-title', name: 'title', meta: '20 / 500' },
-  { className: 't-body', name: 'body', meta: '13 / 400' },
-  { className: 't-label', name: 'label', meta: '12 / 500' },
-  { className: 't-caption', name: 'caption', meta: '11 / 500' },
-  { className: 't-micro', name: 'micro', meta: '10 / 500' },
+  { className: 't-hero', name: 'hero', meta: '56 / 500' },
+  { className: 't-display', name: 'display', meta: '36 / 500' },
+  { className: 't-title', name: 'title', meta: '24 / 500' },
+  { className: 't-body', name: 'body', meta: '16 / 400' },
+  { className: 't-label', name: 'label', meta: '15 / 500' },
+  { className: 't-caption', name: 'caption', meta: '14 / 500' },
+  { className: 't-micro', name: 'micro', meta: '12 / 500' },
 ] as const;
 
 const SWATCHES = [

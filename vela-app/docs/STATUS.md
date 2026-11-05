@@ -32,7 +32,7 @@
 |---|---|---|---|
 | T-0101 Репозиторий, workspace, CI | **в работе** | 5 крейтов, Vite+React+TS, fmt/clippy/eslint/prettier, arch-check, CI перенесён в корень, git инициализирован (`57fb5a0`); локально fmt/clippy/test/arch-check зелёные | удалённый репозиторий, первый прогон CI, защита `main` (AC-6); `pnpm dev` вручную не проверен (AC-2) |
 | T-0102 Контракты IPC | **в работе** | `vela-ipc`: типы и кодоген; `client.ts`, `events.ts`, `transport.ts`, `useEvent.ts`; `contract.json` читают и Rust-тесты, и `ipc-gen.mjs`; `ipc:check` и `tsc` зелёные | AC-4 (лог в dev-консоли) и AC-2 (CI) не подтверждены; `InvokeMap` пуст до P2; `zod` отложена (D-18) |
-| T-0103 Токены и темы | **в работе** | `tokens.css` (9 spacing-значений, 7 классов шрифта, dark/light), локальный Inter Tight, `ThemeService` + `useTheme`, `Glass`, ui-kit, dev-витрина `/_kit`; 69 UI-тестов зелёные; скриншоты обеих тем в `vela-plan/.../T-0103-design-tokens/visual/` | запись 240 fps (AC-2), ручная проверка 20 переключений (TC-0103-03), живой WebView2; IPC/SQLite-синхронизация темы — P2 (D-20) |
+| T-0103 Токены и темы | **в работе** | `tokens.css` (9 spacing 6–64, шкала 12–56), локальный Inter Tight, `ThemeService` + `useTheme`, `Glass`, ui-kit, dev-витрина `/_kit`; 70 UI-тестов зелёные; скриншоты обеих тем в `vela-plan/.../T-0103-design-tokens/visual/` | запись 240 fps (AC-2), ручная проверка 20 переключений (TC-0103-03), живой WebView2; IPC/SQLite-синхронизация темы — P2 (D-20) |
 | T-0104 SQLite | **в работе** | `db::open` с PRAGMA, `quick_check`, карантин; миграции, схема v1 (8 таблиц + `schema_migrations`), `ElementsRepo`/`SettingsRepo`, `apply_patch` одной транзакцией; БД создана `cargo run -p vela` | 4 репозитория отложены (D-13); нет фикстуры `v0_empty.db`; AC-1 (≤ 50 мс) и AC-4 (уведомление) вручную не проверены |
 
 ## Gate G1: критерии
@@ -44,7 +44,7 @@
 |---|---|---|
 | 1 | `pnpm dev` показывает страницу с токенами и шрифтом | **частично**: токены/шрифт есть; 2026-11-05 dev-сервер запущен, `/` и `/_kit` отвечали 200, обе темы сняты в headless Edge; ручная проверка пользователем ещё не сделана |
 | 2 | `pnpm ipc:gen` идемпотентна, дифф пустой | ✓ подтверждено 2026-11-03: `pnpm ipc:check` — «типы актуальны» |
-| 3 | `cargo test` и `pnpm test` зелёные, покрытие ≥ 60 % | **частично**: 122 Rust + 69 UI зелёные; покрытие не измерено (D-17) |
+| 3 | `cargo test` и `pnpm test` зелёные, покрытие ≥ 60 % | **частично**: 122 Rust + 70 UI зелёные; покрытие не измерено (D-17) |
 | 4 | CI-пайплайн P1 проходит на push | ✗ ни одного прогона: нет удалённого репозитория |
 | 5 | БД создаётся при старте, миграция идемпотентна | ✓ подтверждено 2026-11-03: тесты + `cargo run -p vela` (exit 0, `state.db` создан) |
 | 6 | Переключение `data-theme` меняет все токены без вспышек | **частично**: автотесты переключают `data-theme`/режим и проверяют `localStorage`; визуальной записи и проверки 20 переключений нет |
@@ -61,11 +61,11 @@ G1 закрывать нельзя.
 |---|---|
 | `pnpm typecheck` | ✓ |
 | `pnpm lint` | ✓ 0 предупреждений |
-| `pnpm test` | ✓ 69/69 в 11 файлах |
+| `pnpm test` | ✓ 70/70 в 11 файлах |
 | `pnpm format:check` | ✓ |
 | `pnpm build` | ✓ 38 модулей; `KitPage` вырезана из production (было 49 с статическим импортом) |
 | `pnpm dev` | ✓ Vite на 5173; `/` и `/_kit` отвечали 200; скриншоты обеих тем сняты в headless Edge |
-| `pnpm test` (новые файлы) | ✓ `tokens` 5, `theme` 10, `theme-boot` 6, `Glass` 3, `Button` 4, `Switch` 4, `KitPage` 3 |
+| `pnpm test` (новые файлы) | ✓ `tokens` 6, `theme` 10, `theme-boot` 6, `Glass` 3, `Button` 4, `Switch` 4, `KitPage` 3 |
 | `tokens.test.ts` контраст | ✓ светлая тема: `accent-text` 4.78, `text-on-accent` 4.61 |
 
 Rust-проверки 2026-11-05 не перезапускались: изменения только в UI и
@@ -98,7 +98,7 @@ Rust-проверки 2026-11-05 не перезапускались: измен
 | Git | Монорепозиторий в корне `vela-vijets`; коммиты `57fb5a0`, `a217cb5`, `d526809`, `16e0cde`, `bfd38c8` |
 | БД | В `0001_init.sql` 8 таблиц; девятая, `schema_migrations`, создаётся bootstrap-DDL в `migrations.rs` (D-9) |
 | Контракты | 7 сгенерированных типов, 10 рукописных файлов; `contract.json` читают Rust-тесты и `ipc-gen.mjs` |
-| UI-тесты | 69 тестов в 11 файлах; 35 новых относятся к T-0103 |
+| UI-тесты | 70 тестов в 11 файлах; 36 новых относятся к T-0103 |
 | Rust-тесты | 123 `#[test]` статически; 122 исполнимы на Windows |
 | Токены | `tokens.css`, `typography.css`, `glass.css`, `ui-kit.css`; hex/rgb/hsl только в `tokens.css` |
 | Тема | inline-скрипт в `index.html`; `ThemeService` + `useTheme`; в P1 — `localStorage`, в P2 — SQLite/IPC (D-20) |
