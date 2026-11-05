@@ -170,7 +170,7 @@
 
 .ui-field {
   display: grid;
-  gap: var(--sp-1);
+  gap: var(--sp-2);
 }
 
 .ui-field__label {
@@ -258,9 +258,16 @@
 /* --- Витрина /_kit ------------------------------------------------------- */
 
 .kit {
-  min-height: 100%;
+  height: 100vh;
+  height: 100dvh;
   padding: var(--sp-9);
+  /*
+   * В приложении body не прокручивается (окно — не документ), но витрина
+   * должна листаться: контент выше экрана, иначе низ просто обрезается.
+   */
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .kit__header {
@@ -269,7 +276,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--sp-4);
-  margin-bottom: var(--sp-6);
+  margin-bottom: var(--sp-9);
 }
 
 .kit__lead {
@@ -280,13 +287,13 @@
 .kit__sections {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--sp-5);
+  gap: var(--sp-9);
   align-items: start;
 }
 
 .kit__section {
   display: grid;
-  gap: var(--sp-4);
+  gap: var(--sp-6);
 }
 
 .kit__row {
@@ -298,7 +305,7 @@
 
 .kit__stack {
   display: grid;
-  gap: var(--sp-2);
+  gap: var(--sp-5);
 }
 
 .kit__type-row {
@@ -306,7 +313,7 @@
   grid-template-columns: minmax(0, 1fr) max-content;
   align-items: baseline;
   gap: var(--sp-4);
-  padding-bottom: var(--sp-2);
+  padding-bottom: var(--sp-3);
   border-bottom: 1px solid var(--stroke);
 }
 
@@ -327,12 +334,12 @@
 .kit__swatches {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: var(--sp-2);
+  gap: var(--sp-4);
 }
 
 .kit__swatch {
   display: grid;
-  gap: var(--sp-1);
+  gap: var(--sp-2);
 }
 
 .kit__swatch-chip {
