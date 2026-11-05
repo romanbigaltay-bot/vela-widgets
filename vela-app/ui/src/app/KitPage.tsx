@@ -82,13 +82,13 @@ export function KitPage(): React.JSX.Element {
       </header>
 
       <div className="kit__sections">
-        <section className="kit__section">
+        <section className="kit__section kit__section--type">
           <h2 className="t-title">Типографика</h2>
           <div className="kit__stack">
             {TYPE_SCALE.map((item) => (
               <div key={item.name} className="kit__type-row">
                 <span className={item.className}>Vela — виджетный слой</span>
-                <span className="t-caption kit__muted num">
+                <span className="t-caption kit__muted num kit__type-meta">
                   {item.name} · {item.meta}
                 </span>
               </div>

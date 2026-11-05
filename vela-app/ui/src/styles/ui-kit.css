@@ -301,12 +301,24 @@
 }
 
 .kit__type-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
   align-items: baseline;
-  justify-content: space-between;
   gap: var(--sp-4);
   padding-bottom: var(--sp-2);
   border-bottom: 1px solid var(--stroke);
+}
+
+.kit__type-meta {
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* Шкала занимает две колонки: 48 px и подпись не помещаются в одну. */
+@media (min-width: 641px) {
+  .kit__section--type {
+    grid-column: span 2;
+  }
 }
 
 .kit__muted {
