@@ -236,7 +236,7 @@ fn now_ms() -> i64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::db::OpenPolicy;
+    use crate::db::{OpenOutcome, OpenPolicy};
 
     fn db(conn_str: &std::path::Path) -> Db {
         Db::open(conn_str, OpenPolicy::Recover).expect("открытие")
@@ -287,6 +287,35 @@ mod tests {
             .call(|conn| current_version(conn))
             .expect("чтение версии");
         assert_eq!(version, crate::SCHEMA_VERSION);
+    }
+
+    #[test]
+    fn tc_0104_02_migrates_v0_empty_fixture() {
+        // TC-0104-02: фикстура v0 — пустой файл на диске, а не отсутствующий
+        // путь. SQLite обязан принять его за пустую базу, а не за порчу.
+        let fixture = include_bytes!("../migrations/fixtures/v0_empty.db");
+
+        let dir = tempfile::tempdir().expect("временный каталог");
+        let path = dir.path().join("state.db");
+        std::fs::write(&path, fixture).expect("запись фикстуры");
+
+        let db = db(&path);
+        assert_eq!(
+            db.outcome(),
+            &OpenOutcome::Opened,
+            "пустой файл — валидная пустая база, не порча"
+        );
+
+        let outcome = migrate(&db).expect("миграция фикстуры");
+        assert_eq!(
+            outcome,
+            MigrateOutcome::Applied {
+                from: 0,
+                to: crate::SCHEMA_VERSION,
+                backup: None
+            },
+            "фикстура v0 должна мигрировать с нуля без копии"
+        );
     }
 
     #[test]

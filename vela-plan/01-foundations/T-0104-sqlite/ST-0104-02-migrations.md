@@ -24,8 +24,10 @@ depends: [ST-0104-01]
 3. Перед миграцией с версии > 0 — копия файла в `state.db.bak-<version>`.
 4. Встроенные миграции через `include_str!` — приложение не зависит от внешних
    файлов после установки.
-5. Тест-фикстура `migrations/fixtures/v0_empty.db` для проверки «с нуля».
-   В текущем дереве **отсутствует**; добавить вместе с TC-0104-02.
+5. Тест-фикстура `migrations/fixtures/v0_empty.db` для проверки «с нуля»:
+   пустой файл (0 байт), который SQLite считает валидной пустой базой.
+   Исключение из правила `*.db` — в `vela-app/.gitignore`; миграцию проверяет
+   `tc_0104_02_migrates_v0_empty_fixture`.
 
 ## Критерии приёмки
 
@@ -36,6 +38,18 @@ depends: [ST-0104-01]
 ## Тест-план
 
 TC-0104-01, TC-0104-02 из README задачи.
+
+## Доказательства (2026-11-05)
+
+- `tc_0104_02_migrates_v0_empty_fixture` копирует фикстуру во временный
+  каталог, открывает её как `OpenOutcome::Opened` и мигрирует с версии 0 до 1
+  без бэкапа.
+- AC-1 подтверждён `ac1_second_run_applies_nothing`.
+- AC-2 подтверждён `ac2_failing_migration_rolls_back_and_keeps_version`.
+- AC-3 подтверждён `ac3_backup_created_before_migration_when_data_exists` и
+  `ac3_full_path_creates_backup_when_moving_from_v1_to_v2`.
+- `cargo test --workspace --all-features` — 123 зелёных теста; `cargo fmt`,
+  `cargo clippy -- -D warnings` и `scripts/arch-check.sh` зелёные.
 
 ## Риски
 
