@@ -40,6 +40,15 @@ UI не вызывает `@tauri-apps/api` напрямую; все вызовы
 Vitest: мок `window.__TAURI__`, проверка разворачивания конверта, ошибки,
 снятия подписки.
 
+## Доказательства (2026-11-06)
+
+- AC-1 — ESLint `no-restricted-imports` запрещает `@tauri-apps/api/core`
+  вне `shared/api`; `pnpm lint` зелёный.
+- AC-2 — `client.test.ts` «сохраняет код, сообщение и флаг retryable».
+- AC-3 — `events.test.ts` (12 тестов) и `useEvent.test.ts` (4 теста),
+  включая снятие подписки при размонтировании.
+- AC-4 — CDP на живом Vite: `ipc probe.echo 0ms ok` в dev-консоли.
+
 ## Риски
 
 Типизация `call` через mapped types даёт сложные сообщения об ошибках —

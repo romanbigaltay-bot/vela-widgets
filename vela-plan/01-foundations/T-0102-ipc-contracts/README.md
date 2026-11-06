@@ -23,9 +23,14 @@ gate: G1
 - `ipc-gen.mjs` читает `contract.json`; 2026-11-03 `pnpm ipc:check` подтвердил
   идемпотентность, `tsc` и 5 контрактных тестов прошли;
 - AC-2 подтверждён в CI 2026-11-06 (job `ipc-contracts`, run 42152167354);
-  AC-4 (лог `invoke` в dev-консоли) ещё не проверен.
+- AC-4 подтверждён 2026-11-06: на живом Vite-сервере через CDP вызван
+  `call('probe.echo', { ping: 1 })`; в dev-консоли появился
+  `ipc probe.echo 0ms ok` (формат `{cmd} {ms}ms ok`).
 
-Статус — `in-progress` до ручного AC-4.
+Статус — `in-progress`: top-level AC-1…AC-5 в объёме P1 подтверждены;
+подзадачи ST-0102-01 (round-trip всех публичных типов) и ST-0102-02
+(tsc-падение у UI-потребителя, типы реальных команд) станут полностью
+проверяемыми в P2 вместе с первой командой.
 
 ## 1. Цель
 
@@ -103,3 +108,13 @@ pub struct VelaError { pub code: ErrorCode, pub message: String, pub retryable: 
   правило: ключи только `String`.
 - Двойная генерация (для A и B поверхностей) даст два файла → один общий файл,
   импортируется обеими точками входа.
+
+## 9. Доказательства (2026-11-06)
+
+- AC-1 — `pnpm ipc:check`: 5 контрактных тестов, «типы актуальны».
+- AC-2 — CI run 42152167354, job `ipc-contracts`: success.
+- AC-3 — `ErrorCode` — закрытый enum; `wire_format_is_snake_case` и
+  `every_error_code_exists_in_generated_binding`.
+- AC-4 — CDP на живом Vite: в dev-консоли `ipc probe.echo 0ms ok`.
+- AC-5 — `client.test.ts` «сохраняет код, сообщение и флаг retryable»:
+  `PermissionDenied` приходит как `VelaFailure` с `code`, без паники.

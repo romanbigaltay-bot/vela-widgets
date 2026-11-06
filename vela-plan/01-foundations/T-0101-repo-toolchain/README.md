@@ -22,7 +22,11 @@ gate: G1
   ([run 42152167354](https://github.com/romanbigaltay-bot/vela-widgets/actions/runs/42152167354))
   зелёный: `rust`, `coverage`, `ui`, `ipc-contracts` — success;
 - AC-1 подтверждён этим прогоном: job `rust` на чистом раннере занял 1 мин
-  44 с при пороге 4 мин; AC-2 (`pnpm dev` и страница) вручную не проверен;
+  44 с при пороге 4 мин;
+- AC-2 подтверждён 2026-11-06: dev-сервер на 5173 отдаёт `HTTP 200`, в
+  headless Chromium отрендерены заголовок `Vela`, health-строки и ссылка
+  `/_kit`; литерал `Hello Vela` из первой редакции ТЗ заменён страницей
+  T-0103 (см. §5);
 - AC-6: защита ветки не настроена — API GitHub возвращает 403 для private
   репозитория на текущем плане (нужен public или платный план);
 - локально 2026-11-03 зелёные `cargo fmt`, `cargo clippy -D warnings`,
@@ -30,7 +34,7 @@ gate: G1
   2026-11-06 Rust-проверки повторены (123 теста с `--all-features`);
 - Tauri-конфиг и `bench/` не созданы: это P2 (`T-0201`) и P8 (`T-0802`).
 
-Поэтому статус — `in-progress`, а не `done`.
+Поэтому статус — `in-progress`: не выполнен только AC-6 (защита `main`).
 
 ## 1. Цель и границы
 
@@ -85,7 +89,10 @@ vela/
 ## 5. Критерии приёмки
 
 - **AC-1** `cargo build --workspace` собирается с нуля на чистой машине за ≤ 4 мин.
-- **AC-2** `pnpm install && pnpm dev` поднимает страницу с `Hello Vela`.
+- **AC-2** `pnpm install && pnpm dev` поднимает страницу каркаса: заголовок
+  `Vela`, health-строки и ссылка на `/_kit`. (В первой редакции ТЗ был текст
+  `Hello Vela`; после T-0103 страница стала витриной токенов — замена
+  зафиксирована 2026-11-06, см. §8.)
 - **AC-3** `cargo clippy --all-targets -- -D warnings` — без замечаний.
 - **AC-4** `pnpm check` проходит локально и в CI.
 - **AC-5** `.editorconfig`, `.gitignore` (target, node_modules, dist, *.db) на месте.
@@ -105,3 +112,17 @@ vela/
 - Долгая первая сборка Tauri на Windows (нужен VS Build Tools) → в README
   отдельный раздел с требованиями и проверкой `link.exe`.
 - Расхождение версий Rust у разработчиков → `rust-toolchain.toml` фиксирует версию.
+
+## 8. Доказательства (2026-11-06)
+
+- AC-1 — CI run 42152167354, job `rust` на чистом раннере: 1 мин 44 с при
+  пороге 4 мин.
+- AC-2 — `pnpm dev` на 5173; `HTTP 200`, headless Chromium отрендерил
+  `<h1>Vela</h1>`, health-строки (`ui`, `theme`, `renderer`) и ссылку `/_kit`.
+  Скриншоты страницы — в `T-0103-design-tokens/visual/`.
+- AC-3, AC-4 — CI run 42152167354: jobs `rust` (clippy) и `ui`
+  (typecheck/lint/format/test) — success.
+- AC-5 — `.editorconfig` в `vela-app/`, `.gitignore` в корне и в `vela-app/`
+  покрывают `target`, `node_modules`, `dist`, `*.db`.
+- AC-6 — не выполнен: branch protection и rulesets API возвращают 403 для
+  private-репозитория на текущем плане GitHub.

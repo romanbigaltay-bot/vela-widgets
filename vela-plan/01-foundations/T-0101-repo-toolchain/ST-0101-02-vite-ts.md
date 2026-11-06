@@ -22,7 +22,9 @@ depends: [ST-0101-01]
    `noImplicitOverride`, `paths: { "@/*": ["src/*"] }`.
 3. `vite.config.ts`: alias `@`, `build.target: "chrome110"` (WebView2 baseline),
    `server.strictPort: true`, `clearScreen: false`.
-4. `src/app/main.tsx` — `createRoot` + `<App/>`, `App` печатает `Hello Vela`.
+4. `src/app/main.tsx` — `createRoot` + `<App/>`; `App` печатает заголовок
+   `Vela` и health-строки. В первой редакции ТЗ был `Hello Vela`; после T-0103
+   страница заменена витриной токенов (см. T-0101 §5, §8).
 5. `index.html` — `lang="ru"`, `color-scheme` мета, пустой `<div id="root">`.
 
 ## Критерии приёмки
