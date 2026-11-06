@@ -2,7 +2,7 @@
 id: ST-0103-01
 parent: T-0103
 title: Токены и базовая типографика
-status: in-progress
+status: done
 est: 0.4d
 owner: ui
 ---
@@ -40,9 +40,10 @@ owner: ui
 - AC-1 Все 7 размеров шкалы используются хотя бы раз в ui-kit-витрине.
   **Выполнено:** `KitPage.test.tsx` проверяет наличие каждого класса.
 - AC-2 Шрифт грузится локально, запросов к внешним CDN нет (проверка в
-  DevTools). **Частично:** `build` кладёт оба woff2 в `dist/assets`,
-  `theme-boot.test.ts` запрещает `fonts.googleapis.com`/`fonts.gstatic.com`;
-  живой DevTools не открывался.
+  DevTools). **Выполнено 2026-11-06:** CDP Network на живом `/_kit` — 34
+  запроса, все к `localhost:5173` плюс один `data:`-URI шума стекла; внешних
+  хостов 0. `document.fonts.status = "loaded"`, оба начертания Inter Tight
+  загружены.
 - AC-3 `--font` фолбэк-стек корректен без загруженного Inter Tight.
   **Выполнено по коду:** `'Inter Tight', 'Segoe UI Variable', 'Segoe UI',
   system-ui, sans-serif`.
@@ -54,7 +55,8 @@ owner: ui
   минимальный кегль 12 px и `caption` 14 px.
 - ✓ `KitPage.test.tsx`: все 7 размеров присутствуют в витрине.
 - ✓ Скриншоты `visual/` включают секцию типографики в обеих темах.
-- ✗ Проверка отсутствия внешних запросов в e2e/DevTools.
+- ✓ 2026-11-06: CDP Network — внешних запросов 0, Inter Tight загружен
+  локально.
 
 ## Риски
 

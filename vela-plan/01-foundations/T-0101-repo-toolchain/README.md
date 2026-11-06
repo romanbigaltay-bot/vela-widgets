@@ -2,7 +2,7 @@
 id: T-0101
 stage: P1
 title: Репозиторий, workspace, toolchain, CI
-status: in-progress
+status: done
 est: 1.0d
 owner: both
 depends: []
@@ -13,10 +13,10 @@ gate: G1
 
 ## 0. Фактическое состояние (2026-11-06)
 
-Каркас создан, но задача не закрыта:
+Каркас создан, все AC подтверждены:
 
 - репозиторий — монорепозиторий `vela-vijets`, remote
-  `github.com/romanbigaltay-bot/vela-widgets` (private); CI перенесён в корневой
+  `github.com/romanbigaltay-bot/vela-widgets` (public); CI перенесён в корневой
   `.github/workflows/ci.yml`, команды выполняются с `working-directory: vela-app`;
 - 2026-11-06 `main` запушен, первый прогон CI
   ([run 42152167354](https://github.com/romanbigaltay-bot/vela-widgets/actions/runs/42152167354))
@@ -27,14 +27,16 @@ gate: G1
   headless Chromium отрендерены заголовок `Vela`, health-строки и ссылка
   `/_kit`; литерал `Hello Vela` из первой редакции ТЗ заменён страницей
   T-0103 (см. §5);
-- AC-6: защита ветки не настроена — API GitHub возвращает 403 для private
-  репозитория на текущем плане (нужен public или платный план);
+- AC-6 подтверждён 2026-11-06: репозиторий переведён в public, branch
+  protection на `main` включён через API; обязательные проверки — `rust`,
+  `coverage`, `ui`, `ipc-contracts`, `strict=true`, `enforce_admins=true`;
+  последний прогон 42154029664 на `89147eb` — все четыре job'а success;
 - локально 2026-11-03 зелёные `cargo fmt`, `cargo clippy -D warnings`,
   `cargo test`, `scripts/arch-check.sh`, `pnpm typecheck/lint/test/format:check`;
   2026-11-06 Rust-проверки повторены (123 теста с `--all-features`);
 - Tauri-конфиг и `bench/` не созданы: это P2 (`T-0201`) и P8 (`T-0802`).
 
-Поэтому статус — `in-progress`: не выполнен только AC-6 (защита `main`).
+Поэтому статус — `done`: все AC подтверждены.
 
 ## 1. Цель и границы
 
@@ -96,8 +98,9 @@ vela/
 - **AC-3** `cargo clippy --all-targets -- -D warnings` — без замечаний.
 - **AC-4** `pnpm check` проходит локально и в CI.
 - **AC-5** `.editorconfig`, `.gitignore` (target, node_modules, dist, *.db) на месте.
-- **AC-6** Ветка `main` защищена, CI обязателен (настраивается в GitHub settings,
-  фиксируется скриншотом в PR).
+- **AC-6** Ветка `main` защищена, CI обязателен. **Выполнено 2026-11-06:**
+  branch protection через API; обязательные проверки `rust`, `coverage`, `ui`,
+  `ipc-contracts`; `strict=true`, `enforce_admins=true`.
 
 ## 6. Тест-план
 
@@ -124,5 +127,8 @@ vela/
   (typecheck/lint/format/test) — success.
 - AC-5 — `.editorconfig` в `vela-app/`, `.gitignore` в корне и в `vela-app/`
   покрывают `target`, `node_modules`, `dist`, `*.db`.
-- AC-6 — не выполнен: branch protection и rulesets API возвращают 403 для
-  private-репозитория на текущем плане GitHub.
+- AC-6 — 2026-11-06 репозиторий переведён в public; `PUT
+  /branches/main/protection` принят: `strict=true`, контексты `rust`,
+  `coverage`, `ui`, `ipc-contracts`, `enforce_admins=true`. Проверка чтением
+  API: те же значения; force-push и удаление ветки запрещены. CI run
+  42154029664 на `89147eb` — все четыре job'а success.
