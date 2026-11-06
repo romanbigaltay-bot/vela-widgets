@@ -2,7 +2,7 @@
 id: ST-0104-03
 parent: T-0104
 title: Репозитории и тесты
-status: in-progress
+status: done
 est: 0.4d
 owner: rust
 depends: [ST-0104-02]
@@ -37,6 +37,14 @@ depends: [ST-0104-02]
 
 Для каждого трейта — минимум 3 теста (пусто, одна запись, много);
 property-тест на round-trip `Element`.
+
+## Доказательства (2026-11-06)
+
+- AC-1 — `repo::tests::ac1_patch_of_50_elements_is_fast`.
+- AC-2 — `repo::tests::ac2_failure_inside_transaction_rolls_back` и
+  `repo::tests::ac2_partial_failure_rolls_back_whole_patch`.
+- AC-3 — `tests/sql_rules.rs::no_select_star_in_repository_code`.
+- CI run 42152167354: jobs `rust` и `coverage` — success.
 
 ## Риски
 

@@ -79,7 +79,8 @@
             "ST-0104-03-repositories.md"
           ],
           "n_subtasks": 3,
-          "status": "in-progress"
+          "status": "done",
+          "closed_at": "2026-11-06"
         }
       ],
       "est_rollup": 4

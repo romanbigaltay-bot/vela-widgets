@@ -2,7 +2,7 @@
 id: ST-0104-01
 parent: T-0104
 title: Слой БД, подключение, PRAGMA
-status: in-progress
+status: done
 est: 0.3d
 owner: rust
 ---
@@ -36,6 +36,13 @@ owner: rust
 
 Unit на `tempfile`; отдельный тест на «мусорный» файл; стресс — 100 чтений
 из 4 потоков.
+
+## Доказательства (2026-11-06)
+
+- AC-1 — `db::tests::ac1_fresh_database_is_small`.
+- AC-2 — `db::tests::ac2_garbage_file_is_quarantined_and_recreated`.
+- AC-3 — `db::tests::ac3_parallel_reads_do_not_fail`.
+- CI run 42152167354: jobs `rust` и `coverage` — success.
 
 ## Риски
 

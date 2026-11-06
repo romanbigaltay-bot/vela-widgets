@@ -2,7 +2,7 @@
 id: ST-0104-02
 parent: T-0104
 title: Миграции и начальная схема
-status: in-progress
+status: done
 est: 0.3d
 owner: rust
 depends: [ST-0104-01]
@@ -50,6 +50,7 @@ TC-0104-01, TC-0104-02 из README задачи.
   `ac3_full_path_creates_backup_when_moving_from_v1_to_v2`.
 - `cargo test --workspace --all-features` — 123 зелёных теста; `cargo fmt`,
   `cargo clippy -- -D warnings` и `scripts/arch-check.sh` зелёные.
+- 2026-11-06: CI run 42152167354 — jobs `rust` и `coverage` зелёные.
 
 ## Риски
 

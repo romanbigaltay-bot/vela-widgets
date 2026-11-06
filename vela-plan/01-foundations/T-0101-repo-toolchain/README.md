@@ -11,17 +11,23 @@ gate: G1
 
 # T-0101 — Репозиторий, workspace, toolchain, CI
 
-## 0. Фактическое состояние (2026-11-02)
+## 0. Фактическое состояние (2026-11-06)
 
 Каркас создан, но задача не закрыта:
 
-- репозиторий — монорепозиторий `vela-vijets`; CI перенесён в корневой
+- репозиторий — монорепозиторий `vela-vijets`, remote
+  `github.com/romanbigaltay-bot/vela-widgets` (private); CI перенесён в корневой
   `.github/workflows/ci.yml`, команды выполняются с `working-directory: vela-app`;
-- коммиты `57fb5a0`, `a217cb5`, `d526809`; удалённого репозитория нет, CI ни
-  разу не запускался, защита ветки не настроена (AC-6);
+- 2026-11-06 `main` запушен, первый прогон CI
+  ([run 42152167354](https://github.com/romanbigaltay-bot/vela-widgets/actions/runs/42152167354))
+  зелёный: `rust`, `coverage`, `ui`, `ipc-contracts` — success;
+- AC-1 подтверждён этим прогоном: job `rust` на чистом раннере занял 1 мин
+  44 с при пороге 4 мин; AC-2 (`pnpm dev` и страница) вручную не проверен;
+- AC-6: защита ветки не настроена — API GitHub возвращает 403 для private
+  репозитория на текущем плане (нужен public или платный план);
 - локально 2026-11-03 зелёные `cargo fmt`, `cargo clippy -D warnings`,
-  `cargo test`, `scripts/arch-check.sh`, `pnpm typecheck/lint/test/format:check`.
-  `pnpm dev` и страница в браузере вручную не проверены (AC-2);
+  `cargo test`, `scripts/arch-check.sh`, `pnpm typecheck/lint/test/format:check`;
+  2026-11-06 Rust-проверки повторены (123 теста с `--all-features`);
 - Tauri-конфиг и `bench/` не созданы: это P2 (`T-0201`) и P8 (`T-0802`).
 
 Поэтому статус — `in-progress`, а не `done`.
