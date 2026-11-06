@@ -25,7 +25,8 @@
             "ST-0101-04-ci.md"
           ],
           "n_subtasks": 4,
-          "status": "in-progress"
+          "status": "done",
+          "closed_at": "2026-11-06"
         },
         {
           "id": "T-0102",
@@ -61,7 +62,8 @@
             "ST-0103-03-glass-primitive.md"
           ],
           "n_subtasks": 3,
-          "status": "in-progress"
+          "status": "done",
+          "closed_at": "2026-11-06"
         },
         {
           "id": "T-0104",

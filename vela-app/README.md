@@ -12,13 +12,13 @@
 
 | Метрика | Значение |
 |---|---|
-| Этап | **P1 — каркас и контракты** |
-| Закрыто задач | **1 из 4**: T-0104 — done; T-0101, T-0102, T-0103 — в работе |
-| Gate G1 | **не пройден**: 5 из 7 критериев подтверждены, 1 частично, 1 нет |
+| Этап | **P1 закрыт; следующий — P2 «Оболочка»** |
+| Закрыто задач | **3 из 4**: T-0101, T-0103, T-0104 — done; T-0102 — в работе (P2-часть) |
+| Gate G1 | **пройден**: 7 из 7 критериев подтверждены |
 | Rust | 5 крейтов; 123 теста прошли 2026-11-06 (`--all-features`), в CI — success |
-| Frontend | Vite + React + TS; токены, темы, `ThemeService`, `Glass`, ui-kit; 70 тестов прошли 2026-11-05, в CI — success; 20 переключений темы проверены CDP 2026-11-06 |
-| CI | run 42152167354 (2026-11-06): `rust`, `coverage`, `ui`, `ipc-contracts` — success; покрытие строк 93.68 % |
-| Коммиты | история начата 2026-11-02; последние — `e36a1ef` (T-0104), `804ff43` (статус), `0de490f` (закрытие T-0104) |
+| Frontend | Vite + React + TS; токены, темы, `ThemeService`, `Glass`, ui-kit; 70 тестов прошли 2026-11-05, в CI — success; 20 переключений темы проверены CDP 2026-11-06; запись переключения 240 fps — в `vela-plan/.../T-0103-design-tokens/visual/theme-switch-240fps.mp4` |
+| CI | run 42154029664 (2026-11-06): `rust`, `coverage`, `ui`, `ipc-contracts` — success; покрытие строк 93.68 % |
+| Коммиты | история начата 2026-11-02; последние — `e36a1ef` (T-0104), `804ff43` (статус), `0de490f` (закрытие T-0104), `89147eb` (доказательства P1) |
 
 Подробный статус, включая расхождение плана и факта, —
 [`docs/STATUS.md`](docs/STATUS.md).
@@ -30,27 +30,24 @@
 - Node.js 20+ и pnpm 9+.
 - WebView2 Runtime — на Windows 11 предустановлен.
 
-## Быстрый старт
+## Быстрый старт (3 команды)
 
-Команды выполняются из каталога `vela-app` (из корня репозитория —
-`cd vela-app`).
+Из корня репозитория:
 
 ```bash
-# Rust: сборка, тесты, линты
-cargo build --workspace
-cargo test --workspace
-cargo clippy --workspace --all-targets -- -D warnings
-bash scripts/arch-check.sh          # архитектурные запреты по манифестам
+# 1. Зависимости фронтенда
+pnpm --dir vela-app/ui install
 
-# Frontend
-cd ui
-pnpm install
-pnpm dev                            # Vite на http://localhost:5173
-pnpm test
-pnpm lint
-pnpm typecheck
-pnpm ipc:gen                        # перегенерировать TS-типы из Rust
+# 2. Rust-тесты (workspace vela-app)
+cargo test --manifest-path vela-app/Cargo.toml --workspace
+
+# 3. Витрина токенов
+pnpm --dir vela-app/ui dev   # http://localhost:5173/_kit
 ```
+
+Полный набор проверок — в CI (`.github/workflows/ci.yml`) и в `AGENTS.md` §5:
+`cargo fmt`, `clippy`, `arch-check`, `pnpm typecheck`, `lint`, `test`,
+`format:check`, `ipc:check`.
 
 ## Структура
 

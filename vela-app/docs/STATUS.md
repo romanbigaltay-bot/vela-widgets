@@ -8,16 +8,16 @@
 | | |
 |---|---|
 | Дата проверки | 2026-11-06 |
-| Репозиторий | `vela-vijets`, ветка `main`, remote [`romanbigaltay-bot/vela-widgets`](https://github.com/romanbigaltay-bot/vela-widgets) (private); последние коммиты — `e36a1ef` (T-0104) и `804ff43` (статус) |
-| Текущий этап | **P1 — каркас и контракты** |
-| Gate G1 | **не пройден** |
-| Задач P1 закрыто | **1 из 4** |
+| Репозиторий | `vela-vijets`, ветка `main`, remote [`romanbigaltay-bot/vela-widgets`](https://github.com/romanbigaltay-bot/vela-widgets) (public); последние коммиты — `e36a1ef` (T-0104), `804ff43` (статус), `0de490f` (закрытие T-0104), `89147eb` (доказательства P1) |
+| Текущий этап | **P1 закрыт; следующий — P2 «Оболочка»** |
+| Gate G1 | **пройден 2026-11-06** |
+| Задач P1 закрыто | **3 из 4** |
 
 ## Прогресс по этапам
 
 | Этап | Задач | Закрыто | Статус |
 |---|---|---|---|
-| P1 Каркас и контракты | 4 | 1 | T-0101, T-0102, T-0103 — в работе; T-0104 — done |
+| P1 Каркас и контракты | 4 | 3 | T-0101, T-0103, T-0104 — done; T-0102 — в работе (P2-часть) |
 | P2 Оболочка | 5 | 0 | не начат |
 | P3 Холст | 5 | 0 | не начат |
 | P4 Рантайм виджетов | 5 | 0 | не начат |
@@ -30,28 +30,27 @@
 
 | Задача | Статус | Что есть | Что осталось |
 |---|---|---|---|
-| T-0101 Репозиторий, workspace, CI | **в работе** | 5 крейтов, Vite+React+TS, fmt/clippy/eslint/prettier, arch-check, CI в корне; git и remote `romanbigaltay-bot/vela-widgets`; CI run 42152167354 зелёный; AC-1 подтверждён (job `rust` 1 мин 44 с), AC-2 — `pnpm dev` + headless Chromium (`/`, `/_kit`, шрифт Inter Tight loaded) | AC-6 — защита `main` (private на текущем плане: API 403) |
+| T-0101 Репозиторий, workspace, CI | **done** | 5 крейтов, Vite+React+TS, fmt/clippy/eslint/prettier, arch-check, CI в корне; git и remote `romanbigaltay-bot/vela-widgets` (public); CI run 42152167354 и 42154029664 зелёные; AC-1 подтверждён (job `rust` 1 мин 44 с), AC-2 — `pnpm dev` + headless Chromium (`/`, `/_kit`, шрифт Inter Tight loaded); AC-6 — branch protection `main` (обязательные `rust`, `coverage`, `ui`, `ipc-contracts`, `strict=true`, `enforce_admins=true`) | — (закрыта 2026-11-06) |
 | T-0102 Контракты IPC | **в работе** | `vela-ipc`: типы и кодоген; `client.ts`, `events.ts`, `transport.ts`, `useEvent.ts`; `contract.json` читают и Rust-тесты, и `ipc-gen.mjs`; `ipc:check` и `tsc` зелёные; AC-2 (CI) и AC-4 (CDP: `ipc probe.echo 0ms ok`) подтверждены | `InvokeMap` пуст до P2; `zod` отложена (D-18); round-trip всех типов и tsc-падение у потребителя — с первой командой в P2 |
-| T-0103 Токены и темы | **в работе** | `tokens.css` (9 spacing 6–64, шкала 12–56), локальный Inter Tight, `ThemeService` + `useTheme`, `Glass`, ui-kit, dev-витрина `/_kit`; 70 UI-тестов зелёные; скриншоты обеих тем в `vela-plan/.../T-0103-design-tokens/visual/`; TC-0103-03 проверен CDP (20 кликов) | запись 240 fps (AC-2), живой WebView2; IPC/SQLite-синхронизация темы — P2 (D-20) |
+| T-0103 Токены и темы | **done** | `tokens.css` (9 spacing 6–64, шкала 12–56), локальный Inter Tight (0 внешних запросов), `ThemeService` + `useTheme`, `Glass`, ui-kit, dev-витрина `/_kit`; 70 UI-тестов зелёные; скриншоты обеих тем в `visual/`; TC-0103-03 проверен CDP (20 кликов); AC-2 — запись `theme-switch-240fps.mp4` (1920×1080, 240 fps, 1200 кадров, 0 белых кадров) | — (закрыта 2026-11-06; P2-follow-ups: живой WebView2, IPC/SQLite-синхронизация темы, D-20) |
 | T-0104 SQLite | **done** | `db::open` с PRAGMA, `quick_check`, карантин; миграции, схема v1 (8 таблиц + `schema_migrations`), `ElementsRepo`/`SettingsRepo`, `apply_patch` одной транзакцией; фикстура `v0_empty.db` и тест `tc_0104_02`; AC-1 измерен (медиана 10.28 мс при пороге 50 мс), AC-4 проверен вручную (порча → бэкап → новая БД, exit 0); CI run 42152167354 — все job'ы зелёные, покрытие 93.68 % | — (закрыта 2026-11-06; 4 репозитория отложены, D-13) |
 
 ## Gate G1: критерии
 
 Оконный критерий из первой редакции («окно 800×600») перенесён в G2: Tauri
-подключается в P2 (`T-0201`, решение D-16). В G1 осталось 7 критериев.
+подключается в P2 (`T-0201`, решение D-16). В G1 7 критериев.
 
 | # | Критерий | Состояние |
 |---|---|---|
 | 1 | `pnpm dev` показывает страницу с токенами и шрифтом | ✓ подтверждено 2026-11-06: `/` и `/_kit` — HTTP 200, headless Chromium отрендерил заголовок, health-строки и витрину; Inter Tight `status: loaded`; скриншоты обеих тем есть |
 | 2 | `pnpm ipc:gen` идемпотентна, дифф пустой | ✓ подтверждено 2026-11-03 и 2026-11-06: `pnpm ipc:check` — «типы актуальны» |
 | 3 | `cargo test` и `pnpm test` зелёные, покрытие ≥ 60 % | ✓ подтверждено 2026-11-06: 123 Rust + 70 UI в CI; покрытие строк 93.68 % (порог 60 %) |
-| 4 | CI-пайплайн P1 проходит на push | ✓ подтверждено 2026-11-06: run [42152167354](https://github.com/romanbigaltay-bot/vela-widgets/actions/runs/42152167354), 4 job'а success |
+| 4 | CI-пайплайн P1 проходит на push | ✓ подтверждено 2026-11-06: run [42152167354](https://github.com/romanbigaltay-bot/vela-widgets/actions/runs/42152167354) и [42154029664](https://github.com/romanbigaltay-bot/vela-widgets/actions/runs/42154029664), по 4 job'а success |
 | 5 | БД создаётся при старте, миграция идемпотентна | ✓ подтверждено 2026-11-03: тесты + `cargo run -p vela` (exit 0, `state.db` создан) |
-| 6 | Переключение `data-theme` меняет все токены без вспышек | **частично**: автотесты + 20 переключений через CDP (тема чередуется, `<style>`/DOM/stylesheet не растут, ошибок 0); записи 240 fps нет |
-| 7 | README объясняет запуск за 3 команды | ✗ команды описаны, но не сведены к трём |
+| 6 | Переключение `data-theme` меняет все токены без вспышек | ✓ подтверждено 2026-11-06: запись `theme-switch-240fps.mp4` (1920×1080, 240 fps CFR, 1200 кадров); средний RGB не превышает 243/241/245, кадров белее светлой темы — 0; плюс 20 переключений через CDP |
+| 7 | README объясняет запуск за 3 команды | ✓ подтверждено 2026-11-06: в `vela-app/README.md` три команды из корня — `pnpm --dir vela-app/ui install`, `cargo test --manifest-path vela-app/Cargo.toml --workspace`, `pnpm --dir vela-app/ui dev` |
 
-**Итог:** 5 критериев подтверждены (1, 2, 3, 4, 5), 1 частично (6),
-1 не выполнен (7). G1 закрывать нельзя.
+**Итог:** все 7 критериев подтверждены. G1 пройден 2026-11-06.
 
 ## Проверки
 
@@ -73,6 +72,7 @@
 | Проверка | Результат |
 |---|---|
 | run [42152167354](https://github.com/romanbigaltay-bot/vela-widgets/actions/runs/42152167354) | ✓ success, 2026-11-06T02:43:54Z–02:45:40Z |
+| run [42154029664](https://github.com/romanbigaltay-bot/vela-widgets/actions/runs/42154029664) на `89147eb` | ✓ success, 4 job'а |
 | job `rust` | ✓ fmt, clippy, test, arch-check |
 | job `coverage` | ✓ `--fail-under-lines 60`; строки 93.68 %, функции 94.42 % |
 | job `ui` | ✓ typecheck, lint, format, test |
@@ -96,6 +96,8 @@
 | `pnpm dev` + headless Chromium | ✓ `/` — HTTP 200, `<h1>Vela</h1>`, health-строки; `/_kit` — витрина; Inter Tight `status: loaded` |
 | AC-4 T-0102 (CDP) | ✓ в dev-консоли `ipc probe.echo 0ms ok` |
 | TC-0103-03 (CDP) | ✓ 20 переключений: тема чередуется, `<style>`/DOM/stylesheet не растут, ошибок 0 |
+| AC-2 T-0103 (запись 240 fps) | ✓ `theme-switch-240fps.mp4` — 1920×1080, 240 fps CFR, 1200 кадров; максимум среднего RGB 243/241/245, кадров белее светлой темы 0; протокол `visual/theme-switch-240fps.md` |
+| ST-0103-01 AC-2 (Network) | ✓ 34 запроса, все к `localhost:5173` + один `data:`-URI; внешних хостов 0; Inter Tight `status: loaded` |
 | `pnpm ipc:check` | ✓ 5 тестов, «типы актуальны» |
 
 ### Прогнано 2026-11-03 (Rust, Windows-GNU)
@@ -129,7 +131,8 @@
 | Rust-тесты | 124 `#[test]` статически; 123 исполнимы на Windows с контрактными тестами |
 | Токены | `tokens.css`, `typography.css`, `glass.css`, `ui-kit.css`; hex/rgb/hsl только в `tokens.css` |
 | Тема | inline-скрипт в `index.html`; `ThemeService` + `useTheme`; в P1 — `localStorage`, в P2 — SQLite/IPC (D-20) |
-| CI | Root `.github/workflows/ci.yml`; run 42152167354 (2026-11-06) — success, 4 job'а |
+| CI | Root `.github/workflows/ci.yml`; run 42152167354 и 42154029664 (2026-11-06) — success, 4 job'а |
+| Защита `main` | branch protection: `strict=true`, контексты `rust`, `coverage`, `ui`, `ipc-contracts`, `enforce_admins=true`; force-push и удаление запрещены |
 | T-0104 AC-1 | `examples/bench_startup.rs`, 20 прогонов: медиана 10.28 мс при пороге 50 мс |
 | T-0104 AC-4 | ручной прогон: мусорный `state.db` → бэкап `state.db.corrupt-*` (SHA-256 совпал), новая БД, exit 0 |
 | Документы | В `vela-plan` 189 `.md`-файлов, как и записано в `PLAN.md` §9 |
@@ -138,8 +141,10 @@
 
 - Покрытие локально не измеряется: `cargo llvm-cov` падает на Windows-GNU
   (`profiler_builtins` отсутствует); в CI измерено 93.68 % строк.
-- Запись переключения темы 240 fps не сделана (AC-2 T-0103); визуального
-  диффа скриншотов и CI visual-джобы нет (TC-0103-02).
+- Визуального диффа скриншотов и CI visual-джобы нет (TC-0103-02);
+  скриншоты сняты вручную 2026-11-05.
+- P2-follow-ups T-0103: живой WebView2, холодный старт/системная тема
+  (ST-0103-02), IPC/SQLite-синхронизация темы (D-20).
 - Подзадачи T-0102, требующие реальной команды (round-trip всех публичных
   типов, tsc-падение у потребителя), станут проверяемыми в P2.
 - NFR-замеры не воспроизводимы: `bench/` появится только в T-0802 (P8).
@@ -205,12 +210,10 @@
 
 ## Следующие шаги (по порядку)
 
-1. Закрыть T-0101: настроить защиту `main` (AC-6; для private на текущем
-   плане API возвращает 403 — нужен public-репозиторий или платный план).
-   AC-1 и AC-2 подтверждены.
-2. Закрыть T-0103: записать переключение без вспышки (240 fps) и проверить
-   `/_kit` в живом WebView2 в P2. TC-0103-03 закрыт CDP-проверкой.
-3. T-0102: top-level AC в объёме P1 закрыты; round-trip/tsc-AC подзадач —
-   вместе с первой командой в P2.
+1. Начать P2: T-0201 (Tauri-приложение, окно 800×600) — следующий этап.
+2. T-0102: P2-часть — `InvokeMap` и первая команда, round-trip/tsc-AC
+   подзадач.
+3. T-0103 P2-follow-ups: живой WebView2, ST-0103-02 (холодный старт,
+   системная тема, IPC/SQLite), D-20.
 4. D-14 (`ElementKind::Unknown`) — в ST-0302-01, вместе с потребителем.
 5. `bench/` и NFR-замеры — в T-0802 (P8), не в P1.
