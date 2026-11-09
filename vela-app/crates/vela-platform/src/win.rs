@@ -25,15 +25,18 @@
 #![allow(unsafe_code)] // Модуль и есть граница с Win32; см. комментарий выше.
 
 use windows::core::w;
-use windows::Win32::Foundation::{CloseHandle, GetLastError, SetLastError, ERROR_SUCCESS, HWND};
+use windows::Win32::Foundation::{
+    CloseHandle, GetLastError, SetLastError, ERROR_INVALID_WINDOW_HANDLE, ERROR_SUCCESS, HWND,
+};
 use windows::Win32::System::Registry::{RegGetValueW, HKEY_CURRENT_USER, RRF_RT_REG_DWORD};
 use windows::Win32::System::Threading::{
     GetCurrentProcessId, GetGuiResources, OpenProcess, GR_GDIOBJECTS, PROCESS_QUERY_INFORMATION,
 };
 use windows::Win32::UI::WindowsAndMessaging::{
-    GetWindowLongPtrW, IsWindow, SetWindowLongPtrW, SetWindowPos, GWL_EXSTYLE, HWND_NOTOPMOST,
-    HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW,
-    WS_EX_TRANSPARENT,
+    GetWindowLongPtrW, IsWindow, IsWindowVisible, SetForegroundWindow, SetWindowLongPtrW,
+    SetWindowPos, ShowWindow, GWL_EXSTYLE, HWND_NOTOPMOST, HWND_TOPMOST, SWP_NOACTIVATE,
+    SWP_NOMOVE, SWP_NOSIZE, SW_HIDE, SW_SHOWNOACTIVATE, WS_EX_APPWINDOW, WS_EX_NOACTIVATE,
+    WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT,
 };
 
 use crate::PlatformError;
@@ -48,6 +51,11 @@ pub struct ExStyle(u32);
 impl ExStyle {
     /// Стилей нет.
     pub const NONE: Self = Self(0);
+    /// Окно принудительно показывается в панели задач.
+    ///
+    /// Бит опасен для поверхностей: он перебивает [`Self::TOOLWINDOW`], и
+    /// окно всё равно появляется в панели задач и Alt+Tab.
+    pub const APPWINDOW: Self = Self(WS_EX_APPWINDOW.0);
     /// Окно не активируется кликом пользователя.
     pub const NOACTIVATE: Self = Self(WS_EX_NOACTIVATE.0);
     /// Окно не появляется в панели задач и Alt+Tab.
@@ -73,6 +81,11 @@ impl ExStyle {
     /// Объединение стилей.
     pub const fn union(self, other: Self) -> Self {
         Self(self.0 | other.0)
+    }
+
+    /// Убирает биты `other`, не трогая остальные.
+    pub const fn without(self, other: Self) -> Self {
+        Self(self.0 & !other.0)
     }
 }
 
@@ -158,6 +171,64 @@ pub fn set_ex_style(raw: isize, style: ExStyle) -> Result<(), PlatformError> {
 /// Добавляет биты к расширенным стилям, не трогая остальные.
 pub fn add_ex_style(raw: isize, style: ExStyle) -> Result<(), PlatformError> {
     set_ex_style(raw, ex_style(raw).union(style))
+}
+
+/// Убирает биты из расширенных стилей, не трогая остальные.
+pub fn remove_ex_style(raw: isize, style: ExStyle) -> Result<(), PlatformError> {
+    set_ex_style(raw, ex_style(raw).without(style))
+}
+
+/// Показывает или скрывает окно, не забирая фокус.
+///
+/// `ShowWindow` не сообщает об ошибке: его возврат означает «было ли окно
+/// видимо раньше». Поэтому невалидный хендл проверяется отдельно, а не по
+/// коду возврата.
+///
+/// Показ идёт через `SW_SHOWNOACTIVATE`: поверхности не должны становиться
+/// активными только потому, что пользователь открыл их из трея.
+pub fn set_window_visible(raw: isize, visible: bool) -> Result<(), PlatformError> {
+    if !is_window(raw) {
+        return Err(PlatformError::Win32 {
+            code: ERROR_INVALID_WINDOW_HANDLE.0,
+            context: "ShowWindow",
+        });
+    }
+    // SAFETY: хендл проверен; `ShowWindow` не разыменовывает его.
+    unsafe {
+        let _ = ShowWindow(hwnd(raw), if visible { SW_SHOWNOACTIVATE } else { SW_HIDE });
+    }
+    Ok(())
+}
+
+/// Видимо ли окно сейчас.
+///
+/// Читается из ядра, а не из флага Tauri: tao переписывает `GWL_EXSTYLE`
+/// при изменении своих флагов, а видимость должна совпадать с тем, что
+/// реально видит пользователь.
+pub fn is_window_visible(raw: isize) -> bool {
+    // SAFETY: `IsWindowVisible` принимает любой хендл и не разыменовывает его.
+    unsafe { IsWindowVisible(hwnd(raw)).as_bool() }
+}
+
+/// Делает окно активным.
+///
+/// `WS_EX_NOACTIVATE` запрещает активацию кликом, но не программную: без
+/// этого вызова Alt+F4 не дойдёт до поверхности. Windows вправе отказать,
+/// если процесс не получил последний ввод (правило foreground), поэтому
+/// вызывающий обязан считать ошибку штатной.
+pub fn set_foreground(raw: isize) -> Result<(), PlatformError> {
+    if !is_window(raw) {
+        return Err(PlatformError::Win32 {
+            code: ERROR_INVALID_WINDOW_HANDLE.0,
+            context: "SetForegroundWindow",
+        });
+    }
+    // SAFETY: хендл проверен; `SetForegroundWindow` не разыменовывает его.
+    if unsafe { SetForegroundWindow(hwnd(raw)) }.as_bool() {
+        Ok(())
+    } else {
+        Err(last_error("SetForegroundWindow"))
+    }
 }
 
 /// Ставит окно поверх всех или возвращает в обычный z-order.
@@ -253,6 +324,13 @@ mod tests {
 
     static REGISTER_CLASS: Once = Once::new();
 
+    /// Сериализует тесты, которые создают настоящие окна.
+    ///
+    /// `twenty_create_destroy_cycles_do_not_leak_gdi_objects` считает
+    /// GDI-объекты всего процесса: параллельно показанное окно из другого
+    /// теста выглядит как утечка. Общий мьютекс убирает эту ложь.
+    static WINDOW_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
     /// Оконная процедура тестового окна: всё отдаём системе.
     unsafe extern "system" fn test_wndproc(
         hwnd: HWND,
@@ -317,6 +395,9 @@ mod tests {
 
     #[test]
     fn ex_style_round_trips() {
+        let _guard = WINDOW_TEST_LOCK
+            .lock()
+            .expect("мьютекс оконных тестов не отравлен");
         let raw = test_window().expect("тестовое окно создаётся");
         let original = ex_style(raw);
 
@@ -342,6 +423,9 @@ mod tests {
 
     #[test]
     fn add_ex_style_preserves_existing_bits() {
+        let _guard = WINDOW_TEST_LOCK
+            .lock()
+            .expect("мьютекс оконных тестов не отравлен");
         let raw = test_window().expect("тестовое окно создаётся");
         let original = ex_style(raw);
 
@@ -356,9 +440,75 @@ mod tests {
     }
 
     #[test]
+    fn remove_ex_style_clears_only_requested_bits() {
+        let _guard = WINDOW_TEST_LOCK
+            .lock()
+            .expect("мьютекс оконных тестов не отравлен");
+        let raw = test_window().expect("тестовое окно создаётся");
+        let original = ex_style(raw);
+
+        add_ex_style(raw, ExStyle::TOOLWINDOW | ExStyle::APPWINDOW).expect("стили добавляются");
+        remove_ex_style(raw, ExStyle::APPWINDOW).expect("APPWINDOW снимается");
+
+        let actual = ex_style(raw);
+        assert!(
+            !actual.contains(ExStyle::APPWINDOW),
+            "WS_EX_APPWINDOW не должен остаться"
+        );
+        assert!(
+            actual.contains(ExStyle::TOOLWINDOW),
+            "остальные биты не должны пострадать"
+        );
+
+        set_ex_style(raw, original).expect("стили возвращаются");
+        destroy(raw).expect("окно уничтожается");
+    }
+
+    #[test]
+    fn visibility_round_trips_through_win32() {
+        let _guard = WINDOW_TEST_LOCK
+            .lock()
+            .expect("мьютекс оконных тестов не отравлен");
+        let raw = test_window().expect("тестовое окно создаётся");
+        assert!(!is_window_visible(raw), "окно создаётся скрытым");
+
+        set_window_visible(raw, true).expect("окно показывается");
+        assert!(is_window_visible(raw), "окно должно быть видимым");
+
+        set_window_visible(raw, false).expect("окно скрывается");
+        assert!(!is_window_visible(raw), "окно должно быть скрытым");
+
+        destroy(raw).expect("окно уничтожается");
+        // После уничтожения показ обязан вернуть ошибку, а не сделать вид,
+        // что всё в порядке.
+        assert!(set_window_visible(raw, true).is_err());
+    }
+
+    #[test]
+    fn foreground_on_invalid_handle_is_an_error() {
+        assert!(set_foreground(0).is_err());
+    }
+
+    #[test]
+    fn foreground_on_real_window_is_best_effort() {
+        let _guard = WINDOW_TEST_LOCK
+            .lock()
+            .expect("мьютекс оконных тестов не отравлен");
+        let raw = test_window().expect("тестовое окно создаётся");
+        // Windows вправе отказать: тестовый процесс не обязан быть
+        // foreground. Проверяем, что вызов не падает и не портит окно.
+        let _ = set_foreground(raw);
+        assert!(is_window(raw));
+        destroy(raw).expect("окно уничтожается");
+    }
+
+    #[test]
     fn twenty_create_destroy_cycles_do_not_leak_gdi_objects() {
-        // Замер до цикла: тест идёт параллельно с другими, но только этот
-        // создаёт окна, поэтому дельта отражает именно утечку.
+        let _guard = WINDOW_TEST_LOCK
+            .lock()
+            .expect("мьютекс оконных тестов не отравлен");
+        // Пока держим мьютекс, другие оконные тесты не создают окон:
+        // дельта отражает именно утечку этого цикла.
         let before = gdi_objects().expect("GetGuiResources доступен");
 
         for _ in 0..20 {
@@ -380,6 +530,9 @@ mod tests {
 
     #[test]
     fn topmost_can_be_set_and_cleared() {
+        let _guard = WINDOW_TEST_LOCK
+            .lock()
+            .expect("мьютекс оконных тестов не отравлен");
         let raw = test_window().expect("тестовое окно создаётся");
         set_topmost(raw, true).expect("окно ставится поверх");
         set_topmost(raw, false).expect("окно возвращается в обычный порядок");

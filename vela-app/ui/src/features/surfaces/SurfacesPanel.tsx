@@ -5,7 +5,7 @@
  *
  * Ядро уже создаёт окно поверхности, но UI об этом не знает. Панель вызывает
  * `window.surfaces_status`, показывает ответ и подписывается на
- * `window.surfaces_changed`. Это доказывает всю цепочку
+ * `window:surfaces_changed`. Это доказывает всю цепочку
  * «React → call() → Tauri → Rust → Envelope → React» на настоящем окне,
  * а не на моке.
  *
@@ -78,7 +78,7 @@ export function SurfacesPanel(): React.JSX.Element {
     };
   }, [attempt]);
 
-  useEvent('window.surfaces_changed', (surfaces) => {
+  useEvent('window:surfaces_changed', (surfaces) => {
     setState({ status: 'ready', surfaces });
   });
 

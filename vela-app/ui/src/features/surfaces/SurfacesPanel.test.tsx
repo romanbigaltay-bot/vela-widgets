@@ -78,13 +78,13 @@ describe('панель поверхностей', () => {
     expect(screen.getByText('сломалось')).toBeTruthy();
   });
 
-  it('обновляется по событию window.surfaces_changed', async () => {
+  it('обновляется по событию window:surfaces_changed', async () => {
     __setTransportForTests(transportWith(ok([HIDDEN_UI])));
     render(<SurfacesPanel />);
     expect(await screen.findByText('скрыта')).toBeTruthy();
 
     act(() => {
-      emitLocal('window.surfaces_changed', [{ ...HIDDEN_UI, state: 'visible' }]);
+      emitLocal('window:surfaces_changed', [{ ...HIDDEN_UI, state: 'visible' }]);
     });
 
     expect(screen.getByText('видима')).toBeTruthy();

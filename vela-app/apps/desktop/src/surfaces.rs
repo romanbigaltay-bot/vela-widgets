@@ -131,19 +131,22 @@ struct SurfaceHandle {
     monitor: MonitorId,
     width: u32,
     height: u32,
+    /// Сырой `HWND`: через него выставляются стили и видимость в обход tao.
+    raw: isize,
+    /// Стили, которые обязаны быть на окне при каждом показе.
+    style: ExStyle,
     window: WebviewWindow<Wry>,
     destroyed: bool,
 }
 
 impl SurfaceHandle {
-    /// Снимок для UI. Видимость читается из окна, а не хранится копией:
+    /// Снимок для UI. Видимость читается из ядра, а не хранится копией:
     /// Alt+F4, скрытие из трея и будущие анимации не должны расходиться.
     fn status(&self) -> SurfaceStatus {
-        let visible = self.window.is_visible().unwrap_or(false);
         SurfaceStatus {
             kind: self.kind,
             monitor: self.monitor.clone(),
-            state: if visible {
+            state: if win::is_window_visible(self.raw) {
                 SurfaceState::Visible
             } else {
                 SurfaceState::Hidden
@@ -213,6 +216,9 @@ impl SurfaceManager {
         }
 
         let window = create_window(app, &spec)?;
+        let raw = window.hwnd()?.0 as isize;
+        let style = platform_style(&spec);
+        apply_platform_style(raw, style, spec.top_most)?;
         let id = SurfaceId(self.next_id);
         self.next_id = self.next_id.saturating_add(1);
 
@@ -232,6 +238,8 @@ impl SurfaceManager {
                 monitor: spec.monitor,
                 width: spec.width,
                 height: spec.height,
+                raw,
+                style,
                 window,
                 destroyed: false,
             },
@@ -264,7 +272,7 @@ impl SurfaceManager {
     pub(crate) fn kind_visible(&self, kind: SurfaceKind) -> bool {
         self.surfaces
             .values()
-            .any(|handle| handle.kind == kind && handle.window.is_visible().unwrap_or(false))
+            .any(|handle| handle.kind == kind && win::is_window_visible(handle.raw))
     }
 
     /// Показывает или скрывает все поверхности указанного типа.
@@ -287,15 +295,28 @@ impl SurfaceManager {
         {
             found = true;
             if visible {
-                handle.window.show()?;
-                // Фокус — best-effort: WS_EX_NOACTIVATE вправе запретить
-                // активацию. Молча проглотить ошибку нельзя, но и валить показ
-                // из-за неё тоже: окно уже видно, и пользователь этого ждёт.
-                if let Err(err) = handle.window.set_focus() {
-                    tracing::debug!(error = %err, "поверхность показана без фокуса");
+                // tao переписывает GWL_EXSTYLE целиком при изменении своих
+                // флагов и возвращает WS_EX_APPWINDOW. Поэтому стили
+                // выставляются заново перед каждым показом, а само окно
+                // показывается через Win32: `window.show()` снова стёр бы их.
+                win::remove_ex_style(handle.raw, ExStyle::APPWINDOW)?;
+                win::add_ex_style(handle.raw, handle.style)?;
+                win::set_window_visible(handle.raw, true)?;
+
+                // Активация нужна, чтобы Alt+F4 доходил до поверхности:
+                // WS_EX_NOACTIVATE запрещает активацию кликом, но не
+                // программную. Отказ штатен — окно уже видно.
+                if let Err(err) = win::set_foreground(handle.raw) {
+                    tracing::debug!(error = %err, "поверхность показана без активации");
                 }
+
+                // Активация меняет флаг FOCUSED у tao, и тот снова
+                // перезаписывает стили. Возвращаем их после последнего
+                // изменения флагов.
+                win::remove_ex_style(handle.raw, ExStyle::APPWINDOW)?;
+                win::add_ex_style(handle.raw, handle.style)?;
             } else {
-                handle.window.hide()?;
+                win::set_window_visible(handle.raw, false)?;
             }
         }
 
@@ -331,7 +352,7 @@ impl SurfaceManager {
     }
 }
 
-/// Создаёт скрытое окно и доводит его до нужного Win32-состояния.
+/// Создаёт скрытое окно.
 fn create_window(
     app: &AppHandle<Wry>,
     spec: &SurfaceSpec,
@@ -349,18 +370,11 @@ fn create_window(
         .focused(false)
         .center()
         .build()?;
-
-    apply_platform_style(&window, spec)?;
     Ok(window)
 }
 
-/// Выставляет расширенные стили до первого показа окна.
-fn apply_platform_style(
-    window: &WebviewWindow<Wry>,
-    spec: &SurfaceSpec,
-) -> Result<(), SurfaceError> {
-    let raw = window.hwnd()?.0 as isize;
-
+/// Собирает стили, которые поверхность обязана носить постоянно.
+fn platform_style(spec: &SurfaceSpec) -> ExStyle {
     // TOOLWINDOW обязателен всем поверхностям: они не должны появляться
     // в панели задач и Alt+Tab, даже когда видимы.
     let mut style = ExStyle::TOOLWINDOW;
@@ -370,14 +384,22 @@ fn apply_platform_style(
     if spec.click_through {
         style |= ExStyle::TRANSPARENT;
     }
+    style
+}
+
+/// Выставляет расширенные стили до первого показа окна.
+fn apply_platform_style(raw: isize, style: ExStyle, top_most: bool) -> Result<(), SurfaceError> {
+    // tao выставляет WS_EX_APPWINDOW при создании окна. Этот бит перебивает
+    // TOOLWINDOW: окно всё равно попадает в панель задач и Alt+Tab. Снимаем
+    // его до первого показа — позже пользователь уже увидит иконку.
+    win::remove_ex_style(raw, ExStyle::APPWINDOW)?;
     win::add_ex_style(raw, style)?;
 
-    if spec.top_most {
+    if top_most {
         win::set_topmost(raw, true)?;
     }
 
     tracing::debug!(
-        kind = spec.kind.as_str(),
         ex_style = format_args!("{:#x}", win::ex_style(raw).bits()),
         "стили поверхности применены"
     );
@@ -399,8 +421,8 @@ pub(crate) fn is_ui_label(label: &str) -> bool {
 /// Ошибка отправки не фатальна: событие информационное, а следующий вызов
 /// `window.surfaces_status` всё равно вернёт актуальные данные.
 pub(crate) fn emit_status(app: &AppHandle<Wry>, statuses: Vec<SurfaceStatus>) {
-    if let Err(err) = app.emit("window.surfaces_changed", statuses) {
-        tracing::debug!(error = %err, "не удалось отправить window.surfaces_changed");
+    if let Err(err) = app.emit("window:surfaces_changed", statuses) {
+        tracing::debug!(error = %err, "не удалось отправить window:surfaces_changed");
     }
 }
 
