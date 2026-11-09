@@ -11,6 +11,17 @@ import type { Transport } from './transport';
 import { __setTransportForTests, call, callWithRetry, VelaFailure } from './client';
 import { recentLogs, clearLogs } from '../lib/log';
 
+/**
+ * Тестовая команда. Реестр больше не принимает произвольные имена, поэтому
+ * транспортные сценарии объявляют свою команду так же, как это делает фича —
+ * через слияние объявлений.
+ */
+declare module './commands' {
+  interface InvokeMap {
+    'probe.echo': { req: unknown; res: unknown };
+  }
+}
+
 /** Фейковый транспорт с записью вызовов. */
 function fakeTransport(response: unknown | (() => unknown)): Transport & {
   readonly calls: { command: string; payload: unknown }[];
@@ -192,11 +203,15 @@ describe('callWithRetry', () => {
 });
 
 describe('типизация реестра', () => {
-  it('InvokeMap пуст в P1 — команды объявляются вместе с обработчиками', () => {
-    // Компиляторная проверка: ключей пока нет. Тест существует, чтобы
-    // момент, когда первая команда появится, был осознанным — здесь придётся
-    // обновить и ожидание, и типы.
-    const keys = Object.keys({} as InvokeMap);
-    expect(keys).toHaveLength(0);
+  it('объявляет window.surfaces_status с правильным ответом', () => {
+    // Компиляторная проверка: команда есть в реестре, запрос — `undefined`,
+    // ответ — массив поверхностей. Если сигнатура разойдётся с Rust,
+    // сломается не только этот тест, но и `pnpm typecheck`.
+    const request: InvokeMap['window.surfaces_status']['req'] = undefined;
+    const response: InvokeMap['window.surfaces_status']['res'] = [
+      { kind: 'ui', monitor: 'primary', state: 'hidden', width: 800, height: 600 },
+    ];
+    expect(request).toBeUndefined();
+    expect(response).toHaveLength(1);
   });
 });

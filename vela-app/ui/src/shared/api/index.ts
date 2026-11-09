@@ -19,6 +19,9 @@ export type { WidgetId } from './WidgetId';
 export type { ErrorCode } from './ErrorCode';
 export type { VelaError } from './VelaError';
 export type { Envelope } from './Envelope';
+export type { SurfaceKind } from './SurfaceKind';
+export type { SurfaceState } from './SurfaceState';
+export type { SurfaceStatus } from './SurfaceStatus';
 
 // ---------------------------------------------------------------------------
 // Карты команд и событий. Расширяются через `declare module` в фичах:

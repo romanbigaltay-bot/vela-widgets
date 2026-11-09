@@ -1,7 +1,8 @@
 /**
- * Корневой компонент. В P1 — проверка того, что каркас собран правильно:
- * алиас `@`, токены темы, шрифт. Реальный холст появляется в P3.
+ * Корневой компонент. В P1 здесь была проверка каркаса, в P2 добавлена панель
+ * поверхностей — первый живой вызов IPC. Реальный холст появляется в P3.
  */
+import { SurfacesPanel } from '@/features/surfaces/SurfacesPanel';
 import { health } from '@/shared/lib/health';
 
 export function App(): React.JSX.Element {
@@ -19,6 +20,7 @@ export function App(): React.JSX.Element {
           </div>
         ))}
       </dl>
+      <SurfacesPanel />
       {import.meta.env.DEV ? (
         <a className="t-caption" href="/_kit">
           Открыть ui-kit

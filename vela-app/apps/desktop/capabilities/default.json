@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Базовые права окна Vela: события, окно, webview и ресурсы. Команды приложения правами не ограничиваются — они объявлены в invoke_handler.",
+  "windows": ["*"],
+  "permissions": ["core:default"]
+}

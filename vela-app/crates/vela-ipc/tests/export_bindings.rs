@@ -94,6 +94,9 @@ fn export_all(dir: &Path) {
     vela_ipc::MonitorId::export_all_to(dir).expect("export MonitorId");
     vela_ipc::ProfileId::export_all_to(dir).expect("export ProfileId");
     vela_ipc::WidgetId::export_all_to(dir).expect("export WidgetId");
+    vela_ipc::SurfaceKind::export_all_to(dir).expect("export SurfaceKind");
+    vela_ipc::SurfaceState::export_all_to(dir).expect("export SurfaceState");
+    vela_ipc::SurfaceStatus::export_all_to(dir).expect("export SurfaceStatus");
     vela_ipc::ErrorCode::export_all_to(dir).expect("export ErrorCode");
     vela_ipc::VelaError::export_all_to(dir).expect("export VelaError");
     // Envelope generic: ts-rs не выводит generic-типы сам, поэтому контракт
@@ -134,6 +137,26 @@ fn generated_set_matches_expected() {
         expected,
         "набор сгенерированных типов разошёлся с ожидаемым: тип добавлен или \
          переименован в src/ без обновления EXPECTED"
+    );
+}
+
+#[test]
+fn export_to_configured_dir() {
+    // Единственный тест, который пишет наружу. `pnpm ipc:gen` передаёт сюда
+    // временный каталог и переносит результат в `ui/src/shared/api` сам.
+    // Без переменной писать некуда: прямой `cargo test` не должен менять
+    // рабочее дерево.
+    let Some(dir) = export_dir() else {
+        return;
+    };
+    std::fs::create_dir_all(&dir).expect("create export dir");
+    export_all(&dir);
+
+    let generated: BTreeSet<String> = generated_files(&dir);
+    let wanted: BTreeSet<String> = expected().into_iter().collect();
+    assert_eq!(
+        generated, wanted,
+        "экспорт записал не тот набор типов: проверьте contract.json"
     );
 }
 

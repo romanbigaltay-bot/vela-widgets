@@ -1,0 +1,88 @@
+/**
+ * Панель поверхностей.
+ *
+ * Цвета и отступы — только через токены: панель должна пережить смену темы
+ * без отдельного CSS для светлой версии.
+ */
+
+.surfaces {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  max-width: 560px;
+  padding: var(--sp-5);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.surfaces__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+
+.surfaces__hint {
+  margin-top: var(--sp-1);
+  color: var(--text-dim);
+}
+
+.surfaces__loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.surfaces__empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  margin: 0;
+  color: var(--text-dim);
+}
+
+.surfaces__message {
+  color: var(--text-faint);
+}
+
+.surfaces__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.surfaces__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-inner);
+  background: var(--panel-hi);
+}
+
+.surfaces__monitor {
+  color: var(--text-dim);
+}
+
+.surfaces__size {
+  color: var(--text-dim);
+}
+
+.surfaces__state {
+  padding: 0 var(--sp-2);
+  border-radius: var(--radius-chip);
+  color: var(--text-dim);
+  background: var(--track);
+}
+
+.surfaces__state[data-state='visible'] {
+  color: var(--ok);
+  background: var(--accent-soft);
+}
