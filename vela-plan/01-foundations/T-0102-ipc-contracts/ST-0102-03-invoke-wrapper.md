@@ -2,7 +2,7 @@
 id: ST-0102-03
 parent: T-0102
 title: Обёртка invoke и реестр событий в UI
-status: in-progress
+status: done
 est: 0.4d
 owner: ui
 depends: [ST-0102-02]
@@ -48,6 +48,13 @@ Vitest: мок `window.__TAURI__`, проверка разворачивания
 - AC-3 — `events.test.ts` (12 тестов) и `useEvent.test.ts` (4 теста),
   включая снятие подписки при размонтировании.
 - AC-4 — CDP на живом Vite: `ipc probe.echo 0ms ok` в dev-консоли.
+
+### P2-часть (2026-11-15)
+
+- AC-1…AC-4 подтверждены на реальной команде `window.surfaces_status`:
+  панель `SurfacesPanel` вызывает её через `call()`, показывает снимок и
+  обновляется по событию `window:surfaces_changed`; `pnpm lint`,
+  `pnpm typecheck` и 76 UI-тестов зелёные.
 
 ## Риски
 

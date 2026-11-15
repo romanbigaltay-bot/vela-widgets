@@ -2,7 +2,7 @@
 id: ST-0102-01
 parent: T-0102
 title: Крейт vela-ipc: типы, конверт, ошибки
-status: in-progress
+status: done
 est: 0.3d
 owner: rust
 ---
@@ -34,6 +34,15 @@ owner: rust
 ## Тест-план
 
 Property-тест (proptest) на round-trip сериализации всех ID и `Envelope`.
+
+## Доказательства (2026-11-15)
+
+- AC-1: wire-format тесты в `vela-ipc` (включая `SurfaceKind`,
+  `SurfaceState`, `SurfaceStatus`) и round-trip `Envelope` зелёные;
+  `cargo test --workspace --all-features` — 148 тестов.
+- AC-2: `cargo tree -p vela-ipc` не содержит `tauri`; arch-check зелёный.
+- AC-3: идентификаторы — newtype-обёртки (`MonitorId`, `ElementId`,
+  `WidgetId`, `ProfileId`); голых `String` в публичных типах нет.
 
 ## Риски
 

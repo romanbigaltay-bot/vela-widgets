@@ -44,7 +44,8 @@
             "ST-0102-03-invoke-wrapper.md"
           ],
           "n_subtasks": 3,
-          "status": "in-progress"
+          "status": "done",
+          "closed_at": "2026-11-15"
         },
         {
           "id": "T-0103",
@@ -112,7 +113,8 @@
             "ST-0201-03-single-instance.md"
           ],
           "n_subtasks": 3,
-          "status": "planned"
+          "status": "done",
+          "closed_at": "2026-11-15"
         },
         {
           "id": "T-0202",

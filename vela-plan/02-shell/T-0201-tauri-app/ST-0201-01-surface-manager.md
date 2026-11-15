@@ -2,12 +2,47 @@
 id: ST-0201-01
 parent: T-0201
 title: Конфиг Tauri и менеджер поверхностей
-status: ready
+status: done
 est: 0.5d
 owner: rust
 ---
 
 # ST-0201-01 — Менеджер поверхностей
+
+## 0. Фактическое состояние (2026-11-15)
+
+Реализовано в `apps/desktop/src/surfaces.rs` и `crates/vela-platform/src/win.rs`:
+
+- `tauri.conf.json`: `app.windows: []`, окна создаются только кодом;
+  `withGlobalTauri: false`, `csp: null` — до появления реального контента.
+- `create_window`: `WebviewWindowBuilder` с `.decorations(false)`,
+  `.skip_taskbar(true)`, `.visible(false)`, `.focused(false)`, `.center()`;
+  размер 800×600, `transparent: false` до T-0203.
+- `platform_style`: `WS_EX_TOOLWINDOW` всем поверхностям, `WS_EX_NOACTIVATE`
+  при `no_activate`, `WS_EX_TRANSPARENT` при `click_through`; `top_most` —
+  через `SetWindowPos(HWND_TOPMOST, SWP_NOACTIVATE)`.
+- `WS_EX_APPWINDOW` снимается после создания и повторно перед каждым показом:
+  tao переписывает `GWL_EXSTYLE` целиком и возвращает этот бит. Фактический
+  ex-style UI — `0x08000190`.
+- `ensure` идемпотентен по `(kind, monitor)`, `destroy` и `Drop` уничтожают
+  окно ровно один раз, `status()` читает видимость из Win32.
+- `parent_to_workerw: true` возвращает `SurfaceError::Unsupported` до T-0202.
+- Показ/скрытие — `ShowWindow(SW_SHOWNOACTIVATE/SW_HIDE)`; после показа
+  `SetForegroundWindow` (best-effort) и повторное применение стилей.
+
+Подтверждение AC:
+
+| AC | Доказательство |
+|---|---|
+| AC-1 | ex-style `0x08000190`; `WS_EX_NOACTIVATE` и `WS_EX_TOOLWINDOW` присутствуют, `WS_EX_APPWINDOW` отсутствует |
+| AC-2 | вручную: окна нет в панели задач и Alt+Tab; стили проверены до и после показа |
+| AC-3 | временный двойной вызов `ensure` в debug-сборке: один лог «поверхность создана» и одно окно `Tauri Window`; код откачен |
+| AC-4 | `twenty_create_destroy_cycles_do_not_leak_gdi_objects` в `vela-platform` — 20 циклов, GDI-объекты не растут; оконные тесты сериализованы `WINDOW_TEST_LOCK` |
+
+Отклонения: прозрачность и hit-regions — T-0203; WorkerW — T-0202;
+`SurfaceState` пока только `Hidden | Visible`.
+
+Статус — `done` (2026-11-15).
 
 ## Цель
 

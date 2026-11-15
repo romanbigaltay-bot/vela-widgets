@@ -12,13 +12,14 @@
 
 | Метрика | Значение |
 |---|---|
-| Этап | **P1 закрыт; следующий — P2 «Оболочка»** |
-| Закрыто задач | **3 из 4**: T-0101, T-0103, T-0104 — done; T-0102 — в работе (P2-часть) |
+| Этап | **P2 «Оболочка» — в работе**; T-0201 закрыта, следующая — T-0202 |
+| Закрыто задач | **P1 4/4** (T-0101…T-0104); **P2 1/5** (T-0201) |
 | Gate G1 | **пройден**: 7 из 7 критериев подтверждены |
-| Rust | 5 крейтов; 123 теста прошли 2026-11-06 (`--all-features`), в CI — success |
-| Frontend | Vite + React + TS; токены, темы, `ThemeService`, `Glass`, ui-kit; 70 тестов прошли 2026-11-05, в CI — success; 20 переключений темы проверены CDP 2026-11-06; запись переключения 240 fps — в `vela-plan/.../T-0103-design-tokens/visual/theme-switch-240fps.mp4` |
-| CI | run 42154029664 (2026-11-06): `rust`, `coverage`, `ui`, `ipc-contracts` — success; покрытие строк 93.68 % |
-| Коммиты | история начата 2026-11-02; последние — `e36a1ef` (T-0104), `804ff43` (статус), `0de490f` (закрытие T-0104), `89147eb` (доказательства P1) |
+| Rust | 6 крейтов/бинарей; 148 тестов прошли 2026-11-15 (`--all-features`) |
+| Tauri | **2.12.5**: трей, single-instance, скрытая UI-поверхность 800×600 |
+| Frontend | Vite + React + TS; токены, темы, `ThemeService`, `Glass`, ui-kit, `SurfacesPanel`; 76 тестов прошли 2026-11-15 |
+| CI | jobs `rust`, `coverage`, `ui`, `ipc-contracts`, `desktop`; run 42156600633 (`main`) — success, покрытие 93.68 % |
+| Коммиты | `main` — `4b560e0` (PR #1); ветка `feat/t-0201-tauri-app` — PR #2 |
 
 Подробный статус, включая расхождение плана и факта, —
 [`docs/STATUS.md`](docs/STATUS.md).
@@ -30,7 +31,7 @@
 - Node.js 20+ и pnpm 9+.
 - WebView2 Runtime — на Windows 11 предустановлен.
 
-## Быстрый старт (3 команды)
+## Быстрый старт
 
 Из корня репозитория:
 
@@ -41,8 +42,21 @@ pnpm --dir vela-app/ui install
 # 2. Rust-тесты (workspace vela-app)
 cargo test --manifest-path vela-app/Cargo.toml --workspace
 
-# 3. Витрина токенов
-pnpm --dir vela-app/ui dev   # http://localhost:5173/_kit
+# 3. Разработка: Vite-сервер + приложение (трей и скрытое окно 800×600)
+pnpm --dir vela-app/ui dev            # терминал 1
+cargo run --manifest-path vela-app/Cargo.toml -p vela   # терминал 2
+
+# 4. Витрина токенов (отдельно, в браузере)
+# http://localhost:5173/_kit
+```
+
+Приложение стартует в трее: «Показать виджеты» открывает окно, Alt+F4
+скрывает его, «Выход» завершает процесс. Без `pnpm dev` соберите UI и
+включите `custom-protocol`, чтобы окно грузило вшитые ассеты:
+
+```bash
+pnpm --dir vela-app/ui build
+cargo build --release --manifest-path vela-app/Cargo.toml -p vela --features tauri/custom-protocol
 ```
 
 Полный набор проверок — в CI (`.github/workflows/ci.yml`) и в `AGENTS.md` §5:
@@ -53,13 +67,13 @@ pnpm --dir vela-app/ui dev   # http://localhost:5173/_kit
 
 ```
 vela-app/
-├── apps/desktop/          бинарь приложения (Tauri подключается в T-0201)
+├── apps/desktop/          бинарь приложения: Tauri, трей, поверхности
 ├── crates/
 │   ├── vela-core/         домен: БД, миграции, репозитории (без tauri/windows)
 │   │   └── migrations/    SQL-файлы, вшитые через include_str!
 │   ├── vela-ipc/          контракты Rust↔UI + кодоген (без tauri/windows)
 │   │   └── contract.json  манифест каталога контрактов
-│   ├── vela-platform/     Win32: окна, WorkerW, захват    (пока заглушка)
+│   ├── vela-platform/     Win32: окна, стили; WorkerW и захват — дальше
 │   └── vela-cron/         парсер и планировщик cron       (пока заглушка)
 ├── ui/                    Vite + React + TS
 │   ├── src/shared/api/    сгенерированные типы (не редактировать руками)
@@ -99,6 +113,6 @@ CI лежит не здесь, а в корне монорепозитория:
 ## Известные отклонения от плана
 
 Ведётся в [`docs/STATUS.md`](docs/STATUS.md), раздел «Отклонения».
-Кратко: `tauri` ещё не подключён (осознанно, это ST-0201-01); тесты собраны
-в integration-файлы вместо unit-блоков в каждом модуле; `zod`-валидация
-отложена до P2 (D-18).
+Кратко: `cargo run` — dev-режим Tauri и требует `pnpm dev` (автономный бинарь —
+`--features tauri/custom-protocol`, D-27); тесты собраны в integration-файлы
+вместо unit-блоков в каждом модуле; `zod`-валидация отложена (D-18).
