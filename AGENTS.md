@@ -75,17 +75,17 @@ vela-vijets/                    ← корень монорепозитория 
 
 | Область | Состояние |
 |---|---|
-| Git | Монорепозиторий `vela-vijets`; `main` — `4b560e0` (merge PR #1), рабочая ветка `feat/t-0201-tauri-app` ([PR #2](https://github.com/romanbigaltay-bot/vela-widgets/pull/2)) с коммитами `256dfd5`, `e6fbb62`, `906f06a`. Remote — `github.com/romanbigaltay-bot/vela-widgets` (public); CI run 42152167354, 42152792293, 42154029664, 42156600633 и 43697165125 зелёные |
+| Git | Монорепозиторий `vela-vijets`; T-0201 слита в `main` как `efcae65` (squash [PR #2](https://github.com/romanbigaltay-bot/vela-widgets/pull/2)), до неё `4b560e0` (PR #1). Remote — `github.com/romanbigaltay-bot/vela-widgets` (public); CI run 42152167354, 42152792293, 42154029664, 42156600633, 43697165125 и 43697927270 зелёные |
 | Этап | P1 закрыт: **4 из 4** задач `done` (T-0102 закрыта 2026-11-15). P2 «Оболочка»: **1 из 5** (T-0201); следующие — T-0202/T-0203 |
 | Gate G1 | **пройден 2026-11-06: 7 из 7** критериев подтверждены (`ipc:gen`, тесты + покрытие 93.68 %, CI, БД, страница/шрифт, тема без вспышки — запись 240 fps, README за 3 команды). Оконный критерий перенесён в G2 (D-16) |
 | Gate G2 | **не пройден**: закрыта только T-0201 |
-| Защита `main` | branch protection: обязательные `rust`, `coverage`, `ui`, `ipc-contracts`, `strict=true`, `enforce_admins=true`; force-push и удаление запрещены; `desktop` пока не обязателен |
+| Защита `main` | branch protection: обязательные `rust`, `coverage`, `ui`, `ipc-contracts`, `desktop`, `strict=true`, `enforce_admins=true`; force-push и удаление запрещены |
 | Tauri | **2.12.5** (`tauri-build` 2.7.4, `tauri-plugin-single-instance` 2.4.x); зависимости Windows-only, на других ОС — headless-заглушка |
 | БД | SQLite, схема v1: 8 таблиц в `0001_init.sql` + bootstrap `schema_migrations`; соединение живёт в потоке-владельце, API — `Db::call` |
 | Репозитории | Только `ElementsRepo` и `SettingsRepo`; остальные четыре отложены до потребителя (D-13) |
 | UI | Vite + React + TS; `tokens.css` (9 spacing 6–64, шкала 12–56), dark/light, `ThemeService` + `useTheme`, `Glass`, ui-kit, dev-витрина `/_kit`; 76 UI-тестов; 0 внешних запросов; `SurfacesPanel` — первая живая IPC-панель |
 | Тесты | Прогнано 2026-11-15: 148 Rust-тестов (`--all-features`) и 76 UI-тестов; fmt, clippy, typecheck, lint, format, `ipc:check`, arch-check — зелёные |
-| CI | В корневом `.github/workflows/ci.yml` jobs `rust`, `coverage`, `ui`, `ipc-contracts` и `desktop` (windows-latest: clippy, build, test); run 42156600633 (`main`) — success; run 43697165125 (PR #2) — все 5 job'ов success, `desktop` впервые зелёный |
+| CI | В корневом `.github/workflows/ci.yml` jobs `rust`, `coverage`, `ui`, `ipc-contracts` и `desktop` (windows-latest: clippy, build, test); run 42156600633 (`main`) — success; run 43697165125 (PR #2) и 43697927270 (`main` после merge) — все 5 job'ов success |
 | Инструменты | Установлены Rust 1.99.1 `stable-x86_64-pc-windows-gnu`, MinGW-w64 GCC 16.2.0 (WinLibs), pnpm 9.15.9, Node.js v25.9.0, git 2.56, ffmpeg 9.0.2 (winget). MSVC Build Tools нет; `bash` — `C:\Program Files\Git\bin\bash.exe` |
 | Замеры | Release T-0201: UI скрыто за 84–169 мс, трей за 656–692 мс, второй экземпляр 44.7–45.4 мс, переключение трея медиана 21.71 мс; `bench/` появится в T-0802 (P8) |
 
@@ -324,7 +324,7 @@ UI никогда не пишет в SQLite напрямую — только ч
 | Область | Проблема | Где решать |
 |---|---|---|
 | Проверки | Rust/UI-тесты, fmt, clippy, `ipc:check`, arch-check зелёные; run 42156600633 (`main`) зелёный, покрытие 93.68 %; локально покрытие не измеримо на Windows-GNU | — (в CI измерено) |
-| CI | Remote public, защита `main` включена: `rust`, `coverage`, `ui`, `ipc-contracts`, `strict=true`, `enforce_admins=true`; джоба `desktop` (windows-latest) впервые зелёная в PR #2 (run 43697165125), но пока не обязательна | Добавить `desktop` в обязательные проверки после merge |
+| CI | Remote public, защита `main` включена: `rust`, `coverage`, `ui`, `ipc-contracts`, `desktop`, `strict=true`, `enforce_admins=true`; `desktop` зелёный в PR #2 и на `main` (run 43697165125, 43697927270) | — (закрыто 2026-11-15) |
 | T-0103 | Закрыта 2026-11-06; P2-follow-ups: живой WebView2, холодный старт/системная тема (ST-0103-02), IPC/SQLite-синхронизация (D-20) | ST-0103-02 |
 | T-0201 | Закрыта 2026-11-15; отклонения D-21…D-27 (меню трея, тост, имя события, `transparent: false`, CLI-флаги, Windows CI, dev/prod-режим UI) | T-0202…T-0205 |
 | D-14 | Неизвестный `kind` маскируется под `Widget` | `ST-0302-01` |
