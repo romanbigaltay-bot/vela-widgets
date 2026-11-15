@@ -3,12 +3,13 @@
 Снимок на **2026-11-15**. Источник истины по объёму — `vela-plan/PLAN.md`;
 этот файл отвечает на вопрос «что реально сделано». Проверки прогнаны локально
 на Windows-GNU (Rust 1.99.1, MinGW GCC 16.2.0, pnpm 9.15.9). P1 закрыт
-полностью (4 из 4); в P2 закрыта T-0201, CI для ветки проверяется в PR.
+полностью (4 из 4); в P2 закрыта T-0201, CI run 43697165125 (PR #2) — все
+5 job'ов зелёные, включая `desktop` на windows-latest.
 
 | | |
 |---|---|
 | Дата проверки | 2026-11-15 |
-| Репозиторий | `vela-vijets`, remote [`romanbigaltay-bot/vela-widgets`](https://github.com/romanbigaltay-bot/vela-widgets) (public); `main` — `4b560e0` (merge PR #1); рабочая ветка — `feat/t-0201-tauri-app` (PR #2), коммиты `256dfd5`, `e6fbb62` |
+| Репозиторий | `vela-vijets`, remote [`romanbigaltay-bot/vela-widgets`](https://github.com/romanbigaltay-bot/vela-widgets) (public); `main` — `4b560e0` (merge PR #1); рабочая ветка — `feat/t-0201-tauri-app` ([PR #2](https://github.com/romanbigaltay-bot/vela-widgets/pull/2)), коммиты `256dfd5`, `e6fbb62`, `906f06a`; CI run 43697165125 — success |
 | Текущий этап | **P2 «Оболочка» — в работе; T-0201 закрыта, следующие T-0202/T-0203** |
 | Gate G1 | **пройден 2026-11-06** |
 | Gate G2 | **не пройден**: закрыта только T-0201 |
@@ -133,6 +134,7 @@
 | Release: стили окна | ✓ `GWL_EXSTYLE = 0x08000190` (NOACTIVATE, TOOLWINDOW, WINDOWEDGE, ACCEPTFILES), `WS_EX_APPWINDOW` отсутствует; в панели задач и Alt+Tab окна нет |
 | T-0102 AC-2 | ✓ временное переименование `kind` в `SurfaceStatus.ts` уронило `tsc` 6 ошибками в 4 файлах; после `pnpm ipc:gen` зелено |
 | Ручной смоук T-0201 | ✓ подтверждён 2026-11-09: трей, показ/скрытие, панель поверхностей, Alt+F4, второй запуск, «Выход» |
+| CI PR #2 | ✓ run 43697165125: `rust`, `coverage`, `ui`, `ipc-contracts`, `desktop` — success; `desktop` впервые на windows-latest |
 
 ### Прогнано 2026-11-03 (Rust, Windows-GNU)
 
@@ -158,7 +160,7 @@
 
 | Что | Факт |
 |---|---|
-| Git | Монорепозиторий в корне `vela-vijets`, remote `romanbigaltay-bot/vela-widgets`; `main` — `4b560e0`, рабочая ветка `feat/t-0201-tauri-app` (PR #2), коммиты `256dfd5`, `e6fbb62` |
+| Git | Монорепозиторий в корне `vela-vijets`, remote `romanbigaltay-bot/vela-widgets`; `main` — `4b560e0`, рабочая ветка `feat/t-0201-tauri-app` ([PR #2](https://github.com/romanbigaltay-bot/vela-widgets/pull/2)), коммиты `256dfd5`, `e6fbb62`, `906f06a` |
 | БД | В `0001_init.sql` 8 таблиц; девятая, `schema_migrations`, создаётся bootstrap-DDL в `migrations.rs` (D-9) |
 | Контракты | 10 сгенерированных типов; `contract.json` читают Rust-тесты и `ipc-gen.mjs`; `InvokeMap` содержит `window.surfaces_status` |
 | UI-тесты | 76 тестов в 12 файлах; T-0201 добавила `SurfacesPanel` и обновление `App`/`client` |
@@ -185,8 +187,8 @@
   скриншоты сняты вручную 2026-11-05.
 - P2-follow-ups T-0103: живой WebView2, холодный старт/системная тема
   (ST-0103-02), IPC/SQLite-синхронизация темы (D-20).
-- Windows-джоба `desktop` добавлена в CI, но ещё не прогонялась на GitHub:
-  локально clippy/build/test зелёные; результат появится в PR #2.
+- Windows-джоба `desktop` впервые прошла в PR #2: run 43697165125, все
+  5 job'ов success; локально clippy/build/test тоже зелёные.
 - NFR-замеры не воспроизводимы: `bench/` появится только в T-0802 (P8).
 - Сборка под MSVC не проверялась: локально стоит GNU-toolchain.
 - `--safe-mode` пока только разбирается; содержательная проверка на сломанном
@@ -224,7 +226,7 @@
 | D-23 | Событие называется `window:surfaces_changed`, а не `window.surfaces_changed` | Tauri 2 разрешает в именах событий только буквы, цифры, `-`, `/`, `:` и `_`; точка отклоняется | принято; план и UI обновлены |
 | D-24 | UI-поверхность создаётся с `transparent: false`, `parent_to_workerw` возвращает `Unsupported` | прозрачность и hit-regions — T-0203; WorkerW — T-0202 | принято; не маскировать: неподдерживаемый флаг даёт ошибку |
 | D-25 | `--settings`, `--no-scene`, `--safe-mode` разбираются, но потребителей нет; содержательная проверка `--safe-mode` невозможна | настройки — T-0204, сцена/WorkerW — T-0202 | принято; флаги сохранены в `CliOptions`, проверка перенесена в T-0202 |
-| D-26 | Windows-джоба `desktop` добавлена в CI, покрытие по-прежнему считается на Linux | Win32/Tauri-код не компилируется на Linux; покрытие Windows-кода локально не измеримо | принято; `desktop` проверяет clippy/build/test, `coverage` остаётся Linux |
+| D-26 | Windows-джоба `desktop` добавлена в CI, покрытие по-прежнему считается на Linux | Win32/Tauri-код не компилируется на Linux; покрытие Windows-кода локально не измеримо | принято; `desktop` проверяет clippy/build/test, `coverage` остаётся Linux; первый зелёный прогон — PR #2, run 43697165125 |
 | D-27 | `cargo run -p vela` — dev-режим Tauri и грузит `devUrl`; автономный бинарь требует `--features tauri/custom-protocol` | без Vite-сервера окно пустое; release-смоук T-0201 проверял окно/трей, а не контент | принято; README описывает оба режима, `--all-features` не включает `custom-protocol` |
 
 ## Известные дефекты

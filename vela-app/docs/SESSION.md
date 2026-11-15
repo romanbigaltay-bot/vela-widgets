@@ -103,6 +103,7 @@ Tauri и окно UI уже есть; холста, виджетов, сцены
 | Release: «Выход» | ✓ exit 0, 0 процессов |
 | Release: Alt+F4 | ✓ окно скрылось, процесс жив, ex-style не изменился |
 | T-0102 AC-2 | ✓ переименование поля уронило `tsc` 6 ошибками; после `ipc:gen` зелено |
+| CI PR #2 | ✓ run 43697165125: `rust`, `coverage`, `ui`, `ipc-contracts`, `desktop` — success |
 
 ### Прогнано 2026-11-05 (UI)
 
@@ -160,13 +161,13 @@ Tauri и окно UI уже есть; холста, виджетов, сцены
 
 | Проверка | Результат |
 |---|---|
-| Git | `main` — `4b560e0`; ветка `feat/t-0201-tauri-app` (PR #2), коммиты `256dfd5`, `e6fbb62`; remote `romanbigaltay-bot/vela-widgets` (public) |
+| Git | `main` — `4b560e0`; ветка `feat/t-0201-tauri-app` ([PR #2](https://github.com/romanbigaltay-bot/vela-widgets/pull/2)), коммиты `256dfd5`, `e6fbb62`, `906f06a`; remote `romanbigaltay-bot/vela-widgets` (public) |
 | Схема БД | 8 таблиц в `0001_init.sql` + bootstrap `schema_migrations` = 9 |
 | Контракты | 10 generated, 10 handwritten; `contract.json` читают Rust и JS; `InvokeMap` содержит `window.surfaces_status` |
 | UI-тесты | 76 тестов в 12 файлах; T-0201 добавила `SurfacesPanel` |
 | Rust-тесты | 148 с `--all-features`; 13 в `vela-platform`, 12 в `vela` |
 | Токены | 9 spacing 6–64, шкала 12–56, dark/light, `--accent-text` |
-| CI | run 42152167354 и 42154029664 — success; jobs `rust`, `coverage`, `ui`, `ipc-contracts`; в PR #2 добавлен `desktop` (windows-latest) |
+| CI | run 42152167354 и 42154029664 — success; jobs `rust`, `coverage`, `ui`, `ipc-contracts`; PR #2 (run 43697165125) — все 5 job'ов success, включая новый `desktop` (windows-latest) |
 | Защита `main` | branch protection: `strict=true`, обязательные проверки `rust`, `coverage`, `ui`, `ipc-contracts`, `enforce_admins=true` |
 | Покрытие | 93.68 % строк в CI (порог 60 %) |
 | Документы | 189 `.md` в `vela-plan` |
@@ -179,8 +180,8 @@ Tauri и окно UI уже есть; холста, виджетов, сцены
   (`profiler_builtins`); в CI — 93.68 % строк.
 - Живой WebView2, холодный старт и реальное событие смены системной темы
   (ST-0103-02) станут проверяемыми в P2; IPC/SQLite-синхронизация темы — D-20.
-- Windows-джоба `desktop` ещё не прогонялась на GitHub; локально clippy,
-  build и test зелёные — результат будет в PR #2.
+- Windows-джоба `desktop` впервые прошла в PR #2 (run 43697165125): все
+  5 job'ов success; локально clippy/build/test тоже зелёные.
 - Сборка под MSVC не проверялась; локально стоит GNU-toolchain.
 - `--safe-mode` пока только разбирается; проверка на сломанном WorkerW —
   T-0202 (D-25).
@@ -313,7 +314,8 @@ Tauri и окно UI уже есть; холста, виджетов, сцены
   в `SurfaceStatus.ts` уронило `tsc` 6 ошибками, после `ipc:gen` зелено.
 - 148 Rust-тестов (`--all-features`), 76 UI-тестов; fmt, clippy, typecheck,
   lint, format, `ipc:check`, arch-check — зелёные.
-- Ветка `feat/t-0201-tauri-app`, PR #2; после merge — T-0202.
+- Ветка `feat/t-0201-tauri-app`, PR #2; CI run 43697165125 — все 5 job'ов
+  success, включая `desktop`; после merge — T-0202.
 
 ---
 
@@ -355,7 +357,7 @@ Tauri и окно UI уже есть; холста, виджетов, сцены
 | D-23 | Событие — `window:surfaces_changed`, а не `window.surfaces_changed` | Tauri 2 не принимает точки в именах; план и UI обновлены |
 | D-24 | UI создаётся с `transparent: false`, `parent_to_workerw` — `Unsupported` | прозрачность — T-0203, WorkerW — T-0202; не маскировать |
 | D-25 | `--settings`/`--no-scene`/`--safe-mode` только разбираются | настройки — T-0204, сцена/WorkerW — T-0202; проверка `--safe-mode` перенесена |
-| D-26 | Windows-джоба `desktop` в CI, покрытие считается на Linux | Win32/Tauri не компилируется на Linux; `desktop` проверяет clippy/build/test |
+| D-26 | Windows-джоба `desktop` в CI, покрытие считается на Linux | Win32/Tauri не компилируется на Linux; `desktop` проверяет clippy/build/test; первый зелёный прогон — PR #2 (run 43697165125) |
 | D-27 | `cargo run -p vela` — dev-режим и грузит `devUrl` | автономный бинарь — `--features tauri/custom-protocol` после `pnpm build`; README описывает оба режима |
 
 ---
@@ -413,8 +415,8 @@ pnpm typecheck && pnpm lint && pnpm test && pnpm format:check && pnpm ipc:check
 ```
 
 На 2026-11-15 это подтверждено: 148 тестов с `--all-features`, 76 UI-тестов,
-`ipc:check` без диффа, `arch-check` зелёный. CI для ветки `feat/t-0201-tauri-app`
-проверяется в PR #2; покрытие по-прежнему считается на Linux и локально не
+`ipc:check` без диффа, `arch-check` зелёный. CI PR #2 (run 43697165125) —
+все 5 job'ов success; покрытие по-прежнему считается на Linux и локально не
 измеряется. Если числа расходятся с STATUS — прав статус, а не документ.
 
 ---
