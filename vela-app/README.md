@@ -18,8 +18,8 @@
 | Rust | 6 крейтов/бинарей; 148 тестов прошли 2026-11-15 (`--all-features`) |
 | Tauri | **2.12.5**: трей, single-instance, скрытая UI-поверхность 800×600 |
 | Frontend | Vite + React + TS; токены, темы, `ThemeService`, `Glass`, ui-kit, `SurfacesPanel`; 76 тестов прошли 2026-11-15 |
-| CI | jobs `rust`, `coverage`, `ui`, `ipc-contracts`, `desktop`; run 42156600633 (`main`) — success, покрытие 93.68 %; run 43697165125 (PR #2) — все 5 job'ов success |
-| Коммиты | `main` — `4b560e0` (PR #1); ветка `feat/t-0201-tauri-app` — [PR #2](https://github.com/romanbigaltay-bot/vela-widgets/pull/2), коммиты `256dfd5`, `e6fbb62`, `906f06a` |
+| CI | jobs `rust`, `coverage`, `ui`, `ipc-contracts`, `desktop`; run 42156600633 (`main`) — success, покрытие 93.68 %; PR #2 (run 43697165125) и post-merge `main` (run 43697927270) — все 5 job'ов success |
+| Коммиты | T-0201 слита в `main` как `efcae65` (squash [PR #2](https://github.com/romanbigaltay-bot/vela-widgets/pull/2)), до неё `4b560e0` (PR #1) |
 
 Подробный статус, включая расхождение плана и факта, —
 [`docs/STATUS.md`](docs/STATUS.md).

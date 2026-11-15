@@ -3,13 +3,14 @@
 Снимок на **2026-11-15**. Источник истины по объёму — `vela-plan/PLAN.md`;
 этот файл отвечает на вопрос «что реально сделано». Проверки прогнаны локально
 на Windows-GNU (Rust 1.99.1, MinGW GCC 16.2.0, pnpm 9.15.9). P1 закрыт
-полностью (4 из 4); в P2 закрыта T-0201, CI run 43697165125 (PR #2) — все
-5 job'ов зелёные, включая `desktop` на windows-latest.
+полностью (4 из 4); в P2 закрыта T-0201. PR #2 слит в `main` (`efcae65`),
+post-merge CI run 43697927270 — все 5 job'ов зелёные, включая `desktop`
+на windows-latest; `desktop` добавлен в обязательные проверки.
 
 | | |
 |---|---|
 | Дата проверки | 2026-11-15 |
-| Репозиторий | `vela-vijets`, remote [`romanbigaltay-bot/vela-widgets`](https://github.com/romanbigaltay-bot/vela-widgets) (public); `main` — `4b560e0` (merge PR #1); рабочая ветка — `feat/t-0201-tauri-app` ([PR #2](https://github.com/romanbigaltay-bot/vela-widgets/pull/2)), коммиты `256dfd5`, `e6fbb62`, `906f06a`; CI run 43697165125 — success |
+| Репозиторий | `vela-vijets`, remote [`romanbigaltay-bot/vela-widgets`](https://github.com/romanbigaltay-bot/vela-widgets) (public); T-0201 слита в `main` как `efcae65` (squash [PR #2](https://github.com/romanbigaltay-bot/vela-widgets/pull/2)); CI run 43697927270 — success |
 | Текущий этап | **P2 «Оболочка» — в работе; T-0201 закрыта, следующие T-0202/T-0203** |
 | Gate G1 | **пройден 2026-11-06** |
 | Gate G2 | **не пройден**: закрыта только T-0201 |
@@ -135,6 +136,7 @@
 | T-0102 AC-2 | ✓ временное переименование `kind` в `SurfaceStatus.ts` уронило `tsc` 6 ошибками в 4 файлах; после `pnpm ipc:gen` зелено |
 | Ручной смоук T-0201 | ✓ подтверждён 2026-11-09: трей, показ/скрытие, панель поверхностей, Alt+F4, второй запуск, «Выход» |
 | CI PR #2 | ✓ run 43697165125: `rust`, `coverage`, `ui`, `ipc-contracts`, `desktop` — success; `desktop` впервые на windows-latest |
+| CI main после merge | ✓ run 43697927270 (`efcae65`): все 5 job'ов success; `desktop` добавлен в обязательные проверки |
 
 ### Прогнано 2026-11-03 (Rust, Windows-GNU)
 
@@ -153,14 +155,14 @@
 | `pnpm test` | ✓ 34/34 (до T-0103) |
 | `pnpm build` | ✓ Vite production build |
 
-Статических `#[test]` — 124; один (`uses_xdg_or_home_on_unix`) не компилируется
-на Windows, поэтому локально доступны 123 (с контрактными тестами) и 118 без фич.
+Статических `#[test]` на 2026-11-03 было 124; один (`uses_xdg_or_home_on_unix`)
+не компилируется на Windows. Актуальные числа — в прогонах 2026-11-15 выше.
 
 ### Проверено чтением и git
 
 | Что | Факт |
 |---|---|
-| Git | Монорепозиторий в корне `vela-vijets`, remote `romanbigaltay-bot/vela-widgets`; `main` — `4b560e0`, рабочая ветка `feat/t-0201-tauri-app` ([PR #2](https://github.com/romanbigaltay-bot/vela-widgets/pull/2)), коммиты `256dfd5`, `e6fbb62`, `906f06a` |
+| Git | Монорепозиторий в корне `vela-vijets`, remote `romanbigaltay-bot/vela-widgets`; `main` — `efcae65` (squash [PR #2](https://github.com/romanbigaltay-bot/vela-widgets/pull/2)), CI run 43697927270 — success |
 | БД | В `0001_init.sql` 8 таблиц; девятая, `schema_migrations`, создаётся bootstrap-DDL в `migrations.rs` (D-9) |
 | Контракты | 10 сгенерированных типов; `contract.json` читают Rust-тесты и `ipc-gen.mjs`; `InvokeMap` содержит `window.surfaces_status` |
 | UI-тесты | 76 тестов в 12 файлах; T-0201 добавила `SurfacesPanel` и обновление `App`/`client` |
@@ -187,8 +189,8 @@
   скриншоты сняты вручную 2026-11-05.
 - P2-follow-ups T-0103: живой WebView2, холодный старт/системная тема
   (ST-0103-02), IPC/SQLite-синхронизация темы (D-20).
-- Windows-джоба `desktop` впервые прошла в PR #2: run 43697165125, все
-  5 job'ов success; локально clippy/build/test тоже зелёные.
+- Windows-джоба `desktop` прошла в PR #2 и на `main` (run 43697165125,
+  43697927270); добавлена в обязательные проверки `main`.
 - NFR-замеры не воспроизводимы: `bench/` появится только в T-0802 (P8).
 - Сборка под MSVC не проверялась: локально стоит GNU-toolchain.
 - `--safe-mode` пока только разбирается; содержательная проверка на сломанном

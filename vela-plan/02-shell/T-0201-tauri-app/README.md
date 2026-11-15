@@ -59,6 +59,8 @@ T-0201 реализована и закрыта 2026-11-15. Приложение
   собирается с `--features tauri/custom-protocol` после `pnpm build`
   (D-27). Проверено 2026-11-15: release-бинарь с этой фичей открывает
   `http://tauri.localhost/`, `document.title` — «Vela».
+- Слито в `main` как `efcae65` (PR #2, squash); post-merge CI run
+  43697927270 — все 5 job'ов success, `desktop` добавлен в обязательные.
 
 Статус — `done` (2026-11-15).
 
