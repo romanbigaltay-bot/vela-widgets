@@ -2,7 +2,7 @@
 id: ST-0102-02
 parent: T-0102
 title: Кодоген TS и CI-проверка
-status: in-progress
+status: done
 est: 0.3d
 owner: rust
 depends: [ST-0102-01]
@@ -38,6 +38,16 @@ depends: [ST-0102-01]
 ## Тест-план
 
 TC: изменить имя поля, запустить typecheck, ожидать ошибку; откатить.
+
+## Доказательства (2026-11-15)
+
+- AC-1: `pnpm ipc:check` — «типы актуальны»; генератор не мутирует дерево в
+  режиме `--check`.
+- AC-2: временное переименование `kind` → `kindRenamed` в
+  `SurfaceStatus.ts` уронило `tsc` шестью ошибками в четырёх файлах; после
+  `pnpm ipc:gen` — снова зелено.
+- AC-3: первая команда `window.surfaces_status` имеет `req: undefined` и
+  `res: SurfaceStatus[]`; `CommandMap` без индексной сигнатуры.
 
 ## Риски
 

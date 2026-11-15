@@ -5,13 +5,12 @@ name: ci
 # поэтому все команды выполняются с working-directory: vela-app.
 #
 # Пайплайн из 00-conventions/05-testing.md, сокращённый до того, что реально
-# существует в P1: линты, формат, типы, unit-тесты, архитектурные запреты и
-# покрытие. Сборка бандла и e2e добавятся в ST-0101-04 по мере появления окна
-# (T-0201).
+# существует в P2: линты, формат, типы, unit-тесты, архитектурные запреты,
+# покрытие и сборка Windows-бинаря с Tauri. E2E и бандл добавятся позже.
 #
 # Linux-раннер выбран осознанно: vela-core, vela-ipc, vela-cron и весь UI
 # собираются без Win32, значит быстрый фидбэк дешевле. Windows-джоба
-# появится в P2, когда появятся поверхности.
+# `desktop` проверяет то, что на Linux не компилируется вовсе.
 
 on:
   push:
@@ -138,3 +137,31 @@ jobs:
 
       - name: regenerate and compare
         run: pnpm ipc:check
+
+  desktop:
+    # Windows-код (Tauri, Win32-обёртки, манифест Common-Controls) не
+    # компилируется на Linux. Здесь собирается настоящий бинарь и
+    # прогоняются тесты, включая создание реальных окон в vela-platform.
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: vela-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: vela-app -> target
+
+      - name: clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: build
+        run: cargo build -p vela
+
+      - name: test
+        run: cargo test --workspace

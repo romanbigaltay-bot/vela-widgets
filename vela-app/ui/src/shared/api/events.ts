@@ -26,6 +26,7 @@
  * циклов не оставляет слушателей, независимо от таймингов.
  */
 
+import type { SurfaceStatus } from './SurfaceStatus';
 import type { Unsubscribe } from './transport';
 import { currentTransport } from './client';
 import { log } from '../lib/log';
@@ -47,7 +48,18 @@ import { log } from '../lib/log';
  * Пустой интерфейс здесь — не забывчивость, а требование механизма слияния
  * объявлений: `type` слить нельзя, только `interface`.
  */
-export interface EventMap {}
+export interface EventMap {
+  /**
+   * Снимок поверхностей изменился: окно показано или скрыто, поверхность
+   * создана или уничтожена. Payload — полный снимок, а не дельта: так UI
+   * не может разойтись с ядром из-за потерянного события.
+   *
+   * Точка в имени недопустима: Tauri 2 разрешает только буквы, цифры,
+   * `-`, `/`, `:` и `_`. Поэтому `window.surfaces_changed` из плана
+   * записывается как `window:surfaces_changed`.
+   */
+  'window:surfaces_changed': SurfaceStatus[];
+}
 
 /** Обработчик типизированного события. */
 export type Handler<E extends keyof EventMap> = (payload: EventMap[E]) => void;

@@ -23,10 +23,12 @@
 pub mod envelope;
 pub mod errors;
 pub mod ids;
+pub mod surfaces;
 
 pub use envelope::{Envelope, UnitEnvelope};
 pub use errors::{ErrorCode, VelaError};
-pub use ids::{ElementId, MonitorId, ProfileId, WidgetId};
+pub use ids::{ElementId, IdError, MonitorId, ProfileId, WidgetId};
+pub use surfaces::{SurfaceKind, SurfaceState, SurfaceStatus};
 
 /// Идентификатор сборки крейта контрактов.
 pub fn health() -> &'static str {

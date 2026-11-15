@@ -2,7 +2,7 @@
 id: T-0102
 stage: P1
 title: Контракты IPC и генерация TS-типов
-status: in-progress
+status: done
 est: 1.0d
 owner: rust
 depends: [T-0101]
@@ -11,26 +11,29 @@ gate: G1
 
 # T-0102 — Контракты IPC и генерация TS-типов
 
-## 0. Фактическое состояние (2026-11-06)
+## 0. Фактическое состояние (2026-11-15)
 
-Контракты и UI-обвязка существуют, но задача не закрыта:
+T-0102 закрыта 2026-11-15: P2-часть подтверждена первой реальной командой.
 
 - `ts-rs` пишет **по файлу на тип** (`Envelope.ts`, `ErrorCode.ts`, …), а не
   один `types.gen.ts`; `index.ts` рукописный и реэкспортирует типы;
-- `InvokeMap` в `commands.ts` пуст: команд нет до P2, каталог
-  `crates/vela-ipc/src/commands/` ещё не создан;
-- dev-валидация через `zod` отложена до появления транспорта в P2 (D-18);
-- `ipc-gen.mjs` читает `contract.json`; 2026-11-03 `pnpm ipc:check` подтвердил
-  идемпотентность, `tsc` и 5 контрактных тестов прошли;
+- `InvokeMap` в `commands.ts` содержит `window.surfaces_status`
+  (`req: undefined`, `res: SurfaceStatus[]`). Индексной сигнатуры
+  `[command: string]` в `CommandMap` нет, поэтому опечатка в имени команды —
+  ошибка `tsc`, а не пустой экран;
+- dev-валидация через `zod` по-прежнему отложена (D-18): транспорт есть, но
+  валидация не входила в объём T-0201;
+- `ipc-gen.mjs` читает `contract.json`, экспортирует во временный каталог,
+  сравнивает с рабочим и не мутирует дерево в режиме `--check`;
 - AC-2 подтверждён в CI 2026-11-06 (job `ipc-contracts`, run 42152167354);
 - AC-4 подтверждён 2026-11-06: на живом Vite-сервере через CDP вызван
   `call('probe.echo', { ping: 1 })`; в dev-консоли появился
-  `ipc probe.echo 0ms ok` (формат `{cmd} {ms}ms ok`).
+  `ipc probe.echo 0ms ok` (формат `{cmd} {ms}ms ok`);
+- 2026-11-15 AC-2 проверен на реальной команде: временное переименование поля
+  `kind` → `kindRenamed` в сгенерированном `SurfaceStatus.ts` уронило `tsc`
+  в 4 файлах (6 ошибок); после `pnpm ipc:gen` typecheck снова зелёный.
 
-Статус — `in-progress`: top-level AC-1…AC-5 в объёме P1 подтверждены;
-подзадачи ST-0102-01 (round-trip всех публичных типов) и ST-0102-02
-(tsc-падение у UI-потребителя, типы реальных команд) станут полностью
-проверяемыми в P2 вместе с первой командой.
+Статус — `done` (2026-11-15).
 
 ## 1. Цель
 
@@ -118,3 +121,19 @@ pub struct VelaError { pub code: ErrorCode, pub message: String, pub retryable: 
 - AC-4 — CDP на живом Vite: в dev-консоли `ipc probe.echo 0ms ok`.
 - AC-5 — `client.test.ts` «сохраняет код, сообщение и флаг retryable»:
   `PermissionDenied` приходит как `VelaFailure` с `code`, без паники.
+
+## 10. Доказательства P2-части (2026-11-15)
+
+- AC-2: в `ui/src/shared/api/SurfaceStatus.ts` временно переименовано поле
+  `kind` в `kindRenamed` (эквивалент переименования в Rust без регенерации);
+  `pnpm typecheck` упал с 6 ошибками в `App.test.tsx`,
+  `SurfacesPanel.test.tsx`, `SurfacesPanel.tsx` и `client.test.ts`; после
+  `pnpm ipc:gen` и `pnpm ipc:check` typecheck снова зелёный.
+- AC-3: `InvokeMap['window.surfaces_status']` имеет `req: undefined` и
+  `res: SurfaceStatus[]`; обработчик `commands::window_surfaces_status`
+  зарегистрирован в Tauri, UI-панель `SurfacesPanel` вызывает команду через
+  `call()` и получает типизированный ответ.
+- AC-1: `pnpm ipc:check` — «типы актуальны», 6 контрактных тестов.
+- AC-4: `SurfacesPanel` в живом приложении показывает снимок поверхности,
+  то есть цепочка `React → call() → Tauri → Rust → Envelope → React`
+  пройдена на настоящем окне.

@@ -5,6 +5,10 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[lib]
+name = "vela"
+path = "src/lib.rs"
+
 [[bin]]
 name = "vela"
 path = "src/main.rs"
@@ -18,11 +22,21 @@ anyhow = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
-# Tauri подключается в T-0201/ST-0201-01 вместе с первым окном.
-# В P1 бинарь собирает только каркас приложения (инициализация логирования,
-# проверка версии схемы БД), чтобы G1 не зависел от графического стека.
+# Tauri существует только на Windows. На других платформах собирается
+# headless-заглушка: workspace обязан проходить `cargo test` в Linux CI,
+# где нет ни WebView2, ни Win32.
 [target.'cfg(windows)'.dependencies]
-windows = { version = "0.58", features = ["Win32_Foundation"] }
+tauri = { version = "2.12.5", features = ["tray-icon", "image-png"] }
+tauri-plugin-single-instance = "2.4.5"
+# Версия обязана совпадать с `windows` у Tauri: `HWND` разных версий —
+# разные типы, и хендл окна не пройдёт через границу крейтов.
+windows = { version = "0.62", features = ["Win32_Foundation"] }
+
+[target.'cfg(windows)'.build-dependencies]
+tauri-build = { version = "2.7.4", features = [] }
+# Только для линковки манифеста Common-Controls в тестовые бинарники:
+# `tauri-build` делает это лишь для `[[bin]]`, см. build.rs.
+embed-resource = "3"
 
 [lints]
 workspace = true

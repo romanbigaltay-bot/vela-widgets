@@ -51,6 +51,9 @@
 | [`T-0204`](02-shell/T-0204-autostart-power/README.md) | T-0204 — Автозапуск и питание | P0 | 1.5 | 3 | T-0202, T-0203 |
 | [`T-0205`](02-shell/T-0205-overlay-hotkeys/README.md) | T-0205 — Поверхность C и хоткеи | P1 | 1.0 | 2 | T-0203 |
 
+**Статус 2026-11-15:** T-0201 — `done`; T-0202 и T-0203 — следующие
+(можно параллельно).
+
 **T-0201** — `02-shell/T-0201-tauri-app`
 - [`ST-0201-01`](02-shell/T-0201-tauri-app/ST-0201-01-surface-manager.md) — surface-manager
 - [`ST-0201-02`](02-shell/T-0201-tauri-app/ST-0201-02-tray.md) — tray

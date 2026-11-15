@@ -11,6 +11,9 @@
 
 use thiserror::Error;
 
+#[cfg(windows)]
+pub mod win;
+
 /// Идентификатор сборки платформенного слоя.
 pub fn health() -> &'static str {
     "vela-platform"

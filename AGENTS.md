@@ -1,25 +1,26 @@
 # AGENTS.md — Vela
 
 > Инструкции для агентов и разработчиков, которые продолжают этот проект.
-> Снимок проверки: **2026-11-06**. Проверено чтением файлов, git и прогоном
+> Снимок проверки: **2026-11-15**. Проверено чтением файлов, git и прогоном
 > доступных проверок на Windows-GNU: Rust 1.99.1, MinGW GCC 16.2.0,
-> pnpm 9.15.9. CI зелёный 2026-11-06, покрытие 93.68 %; см. §4 и §9.
+> pnpm 9.15.9. P1 закрыт, в P2 закрыта T-0201; см. §4 и §9.
 
 ## 1. Что это за проект
 
 **Vela** — фоновый слой рабочего стола Windows 11: живой фон (фото, видео,
 2D/3D, игра), бесконечный холст с виджетами и стеклянные панели. План состоит
-из этапов **P1–P8**; **P1 «Каркас и контракты» закрыт**, следующий —
-**P2 «Оболочка»**.
+из этапов **P1–P8**; **P1 «Каркас и контракты» закрыт**, идёт
+**P2 «Оболочка»**: T-0201 закрыта, следующая — T-0202.
 
-Это ещё **не работающее desktop-приложение**:
+Это уже desktop-приложение, но пока только каркас:
 
-- Tauri намеренно не подключён в P1 (появится в P2, `ST-0201-01`);
-- `cargo run -p vela` открывает/мигрирует SQLite и завершается, окна нет;
+- Tauri 2.12.5 подключён в `apps/desktop`; приложение живёт в трее, UI
+  800×600 создаётся скрытым, показывается из трея;
+- `cargo run -p vela` открывает/мигрирует SQLite и запускает Tauri — процесс
+  не завершается, пока не выбран «Выход» в трее;
 - UI — Vite + React; токены, две темы, `ThemeService`, `Glass` и ui-kit есть;
-  T-0103 закрыта в P1-объёме: скриншоты обеих тем и запись переключения
-  240 fps лежат в `visual/`, живой WebView2 — P2;
-- холста, виджетов, сцены, захвата экрана и `bench/` ещё нет.
+  `SurfacesPanel` — первая живая IPC-панель (`window.surfaces_status`);
+- холста, виджетов, сцены (WorkerW), захвата экрана и `bench/` ещё нет.
 
 ## 2. Карта каталога
 
@@ -37,10 +38,10 @@ vela-vijets/                    ← корень монорепозитория 
 │   ├── 00-conventions/         ← термины, DoD, архитектура, ADR, тесты
 │   └── 01-foundations/ … 08-release/
 ├── vela-app/                   ← реализация; команды запускать отсюда
-│   ├── apps/desktop/           ← бинарь `vela`, пока без Tauri
+│   ├── apps/desktop/           ← бинарь `vela`: Tauri, трей, поверхности
 │   ├── crates/vela-core/       ← домен: БД, миграции, элементы, репозитории
 │   ├── crates/vela-ipc/        ← контракты Rust ↔ UI и кодогенерация
-│   ├── crates/vela-platform/   ← Win32-обёртки (заглушка)
+│   ├── crates/vela-platform/   ← Win32-обёртки (win.rs)
 │   ├── crates/vela-cron/       ← cron-планировщик (заглушка)
 │   ├── ui/                     ← Vite + React + TypeScript
 │   └── docs/                   ← канонические STATUS.md и SESSION.md
@@ -74,18 +75,19 @@ vela-vijets/                    ← корень монорепозитория 
 
 | Область | Состояние |
 |---|---|
-| Git | Монорепозиторий `vela-vijets`, ветка `main`; коммиты `57fb5a0` (импорт), `a217cb5` (CI/инструменты), `d526809` (документы), `16e0cde` (coverage), `bfd38c8` (проверенные результаты), `c0d9fa2` (T-0103), `6a1ff61` (витрина и скриншоты), `412d38f` (крупная шкала), `ba1f58f` (скролл и отступы витрины), `b697352` (T-0103), `e36a1ef` (T-0104), `804ff43` (статус), `0de490f` (закрытие T-0104), `89147eb` (доказательства P1). Remote — `github.com/romanbigaltay-bot/vela-widgets` (public); CI run 42152167354, 42152792293 и 42154029664 зелёные |
-| Этап | P1 закрыт: **3 из 4** задач `done` (T-0101, T-0103, T-0104); T-0102 — `in-progress`, осталась P2-часть. Следующий — P2 «Оболочка» |
+| Git | Монорепозиторий `vela-vijets`; `main` — `4b560e0` (merge PR #1), рабочая ветка `feat/t-0201-tauri-app` ([PR #2](https://github.com/romanbigaltay-bot/vela-widgets/pull/2)) с коммитами `256dfd5`, `e6fbb62`, `906f06a`. Remote — `github.com/romanbigaltay-bot/vela-widgets` (public); CI run 42152167354, 42152792293, 42154029664, 42156600633 и 43697165125 зелёные |
+| Этап | P1 закрыт: **4 из 4** задач `done` (T-0102 закрыта 2026-11-15). P2 «Оболочка»: **1 из 5** (T-0201); следующие — T-0202/T-0203 |
 | Gate G1 | **пройден 2026-11-06: 7 из 7** критериев подтверждены (`ipc:gen`, тесты + покрытие 93.68 %, CI, БД, страница/шрифт, тема без вспышки — запись 240 fps, README за 3 команды). Оконный критерий перенесён в G2 (D-16) |
-| Защита `main` | branch protection: обязательные `rust`, `coverage`, `ui`, `ipc-contracts`, `strict=true`, `enforce_admins=true`; force-push и удаление запрещены |
-| Tauri | отсутствует; окно 800×600 появится в P2 (`T-0201`) |
+| Gate G2 | **не пройден**: закрыта только T-0201 |
+| Защита `main` | branch protection: обязательные `rust`, `coverage`, `ui`, `ipc-contracts`, `strict=true`, `enforce_admins=true`; force-push и удаление запрещены; `desktop` пока не обязателен |
+| Tauri | **2.12.5** (`tauri-build` 2.7.4, `tauri-plugin-single-instance` 2.4.x); зависимости Windows-only, на других ОС — headless-заглушка |
 | БД | SQLite, схема v1: 8 таблиц в `0001_init.sql` + bootstrap `schema_migrations`; соединение живёт в потоке-владельце, API — `Db::call` |
-| Репозитории | В P1 только `ElementsRepo` и `SettingsRepo`; остальные четыре отложены до потребителя (D-13) |
-| UI | Vite + React + TS; `tokens.css` (9 spacing 6–64, шкала 12–56), dark/light, `ThemeService` + `useTheme`, `Glass`, ui-kit, dev-витрина `/_kit`; 70 UI-тестов; 0 внешних запросов; запись `visual/theme-switch-240fps.mp4` (1920×1080, 240 fps, 1200 кадров, 0 белых кадров) |
-| Тесты | Прогнано 2026-11-06: 123 Rust-теста (`--all-features`; 118 без фич) и 70 UI-тестов (2026-11-05); в CI 2026-11-06 — 123 Rust + 70 UI зелёные, покрытие строк 93.68 % |
-| CI | В корневом `.github/workflows/ci.yml` jobs `rust`, `coverage`, `ui`, `ipc-contracts`; run 42154029664 (2026-11-06) — все 4 job'а success |
+| Репозитории | Только `ElementsRepo` и `SettingsRepo`; остальные четыре отложены до потребителя (D-13) |
+| UI | Vite + React + TS; `tokens.css` (9 spacing 6–64, шкала 12–56), dark/light, `ThemeService` + `useTheme`, `Glass`, ui-kit, dev-витрина `/_kit`; 76 UI-тестов; 0 внешних запросов; `SurfacesPanel` — первая живая IPC-панель |
+| Тесты | Прогнано 2026-11-15: 148 Rust-тестов (`--all-features`) и 76 UI-тестов; fmt, clippy, typecheck, lint, format, `ipc:check`, arch-check — зелёные |
+| CI | В корневом `.github/workflows/ci.yml` jobs `rust`, `coverage`, `ui`, `ipc-contracts` и `desktop` (windows-latest: clippy, build, test); run 42156600633 (`main`) — success; run 43697165125 (PR #2) — все 5 job'ов success, `desktop` впервые зелёный |
 | Инструменты | Установлены Rust 1.99.1 `stable-x86_64-pc-windows-gnu`, MinGW-w64 GCC 16.2.0 (WinLibs), pnpm 9.15.9, Node.js v25.9.0, git 2.56, ffmpeg 9.0.2 (winget). MSVC Build Tools нет; `bash` — `C:\Program Files\Git\bin\bash.exe` |
-| Замеры | `bench/` отсутствует и запланирован на T-0802 (P8); `pnpm size` удалён; покрытие 93.68 % в CI (2026-11-06) |
+| Замеры | Release T-0201: UI скрыто за 84–169 мс, трей за 656–692 мс, второй экземпляр 44.7–45.4 мс, переключение трея медиана 21.71 мс; `bench/` появится в T-0802 (P8) |
 
 ## 5. Команды
 
@@ -97,16 +99,23 @@ cd vela-app
 cargo fmt --all --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
-cargo test --workspace --all-features   # +5 контрактных тестов, 123 всего
+cargo test --workspace --all-features   # +контрактные тесты, 148 всего
 cargo test -p vela-core --test sql_rules
-cargo run -p vela                 # создаёт/мигрирует БД и выходит; окна нет
+cargo run -p vela                 # БД + Tauri: трей и скрытое окно 800×600
+cargo build --release -p vela --features tauri/custom-protocol
+                                  # автономная сборка: UI из ui/dist
 
 # В Git Bash / WSL (в текущем PATH bash отсутствует):
 "C:\Program Files\Git\bin\bash.exe" scripts/arch-check.sh
 ```
 
-`cargo run -p vela` — это проверка связности крейтов и кодов возврата
-`0/1/2`, а не запуск GUI. Для GUI нужен P2.
+`cargo run -p vela` запускает приложение: БД открывается/мигрируется, затем
+Tauri создаёт скрытую поверхность 800×600 и трей. Процесс живёт до «Выхода» в
+трее. Коды возврата: 0 — штатно, 1 — ошибка инициализации, 2 — БД новее бинаря.
+Без фичи `tauri/custom-protocol` окно грузит `devUrl` (`http://localhost:5173`),
+поэтому для UI нужен `pnpm dev`; для автономного бинаря соберите `ui/dist` и
+добавьте `--features tauri/custom-protocol`. На не-Windows собирается
+headless-заглушка без Tauri.
 
 Локальный Rust — `stable-x86_64-pc-windows-gnu`; для `rusqlite` нужен MinGW
 GCC, он установлен через WinLibs. MSVC Build Tools нет. `cargo llvm-cov` на
@@ -152,7 +161,9 @@ CI лежит в **корневом** `.github/workflows/ci.yml`. Джобы:
 - `rust` — fmt, clippy, test, arch-check (`working-directory: vela-app`);
 - `coverage` — `cargo llvm-cov --workspace --all-features --fail-under-lines 60`;
 - `ui` — typecheck, lint, format, test (`working-directory: vela-app/ui`);
-- `ipc-contracts` — `pnpm ipc:check` из `vela-app/ui`.
+- `ipc-contracts` — `pnpm ipc:check` из `vela-app/ui`;
+- `desktop` — `windows-latest`: clippy, build и test `vela` (Win32/Tauri-код
+  не компилируется на Linux).
 
 Пути кэша и lockfile — `vela-app/ui/pnpm-lock.yaml`. Если добавляешь новую
 команду, проверяй её из того каталога, который указан в workflow.
@@ -166,7 +177,9 @@ CI лежит в **корневом** `.github/workflows/ci.yml`. Джобы:
 - Один процесс приложения; WebView2 сам создаёт рендер-процессы.
 - Тяжёлые данные (кадры, снимки) не гоняются через IPC: передаётся путь к
   файлу в кэше, а не содержимое.
-- В P1 поверхности и Tauri отсутствуют. Не добавляй Win32-код в `vela-core`.
+- Tauri есть только в `apps/desktop`; поверхности создаются через
+  `SurfaceManager`, Win32-вызовы — через `vela-platform::win`. Не добавляй
+  Win32-код в `vela-core`.
 
 ### Владение состоянием
 
@@ -188,7 +201,7 @@ UI никогда не пишет в SQLite напрямую — только ч
 - `vela-ipc` — контракты. Запрещены `tauri`, `windows`, `winit`, `wgpu`.
 - `vela-platform` — Win32; запрещён `tauri`.
 - `vela-cron` — cron-парсер и планировщик, без UI.
-- `vela` (`apps/desktop`) — граница приложения; здесь появится Tauri.
+- `vela` (`apps/desktop`) — граница приложения; здесь живёт Tauri.
 
 ### БД и миграции
 
@@ -211,17 +224,18 @@ UI никогда не пишет в SQLite напрямую — только ч
 
 - Ответы идут в `Envelope<T>` (`ok`, `data`, `error`); ошибки — `VelaError` с
   `ErrorCode`, UI реагирует на `code`, а не на текст.
-- В P1 тема хранится в `localStorage` и синхронизируется `storage`-событием;
-  SQLite через типизированную команду и `app.theme_changed` — только в P2
-  (D-20). `setThemeFromHost` уже готов, inline-скрипт анти-вспышки остаётся.
+- Тема пока хранится в `localStorage` и синхронизируется `storage`-событием;
+  SQLite через типизированную команду и `app.theme_changed` — ST-0103-02
+  (D-20). `setThemeFromHost` готов, inline-скрипт анти-вспышки остаётся.
 - В компонентах **нельзя** импортировать `@tauri-apps/api/core` и вызывать
   `invoke` напрямую. Только `call()` из `shared/api/client`.
 - События — через `on()` / `useEvent`; подписка обязана сниматься при
-  размонтировании.
-- `InvokeMap` пуст до появления первой команды в P2. Не объявляй команды
+  размонтировании. Имя события — `window:surfaces_changed`: Tauri 2 не
+  принимает точки.
+- `InvokeMap` содержит `window.surfaces_status` (T-0201). Не объявляй команды
   заранее «на будущее»: тип появляется вместе с обработчиком.
-- Dev-валидация `zod` отложена до P2 (`D-18`); не добавляй зависимость, пока
-  нет транспорта.
+- Dev-валидация `zod` отложена (`D-18`); транспорт уже есть, но не добавляй
+  зависимость без отдельной задачи.
 - Запрещены `console.*` вне логгера, `any`, `!` (non-null assertion), прямые
   `requestAnimationFrame` и `setInterval` вне соответствующих сервисов.
 - Стили — CSS-переменные/токены; Tailwind не используется. Никаких магических
@@ -300,31 +314,35 @@ UI никогда не пишет в SQLite напрямую — только ч
 | 20 | G1 говорил «4/8», хотя токенов и темы нет | G1 не закрыт; T-0103 не начата |
 | 21 | Проверки не запускались: не было `cargo`/`pnpm` | 2026-11-03 прогнаны 122 Rust-теста, 34 UI-теста, fmt, clippy, `ipc:check`, arch-check — зелёные; CI и покрытие ещё нет |
 | 22 | `cargo test --all-features` падал без `TS_RS_EXPORT_DIR` | Контентные тесты пишут во временный каталог; проверка stray-файлов пропускается без переменной |
+| 23 | `pnpm ipc:gen` ничего не писала, а `--check` менял дерево | Генерация во временный каталог и сравнение; запись только в режиме генерации (B-26) |
+| 24 | `WS_EX_APPWINDOW` возвращался после `window.show()` | Показ через `ShowWindow`, повторное снятие `APPWINDOW` до и после активации (B-27) |
+| 25 | Tauri отклонял событие `window.surfaces_changed` | Имя `window:surfaces_changed` (B-28) |
+| 26 | Тестовый exe падал с `STATUS_ENTRYPOINT_NOT_FOUND` | `embed-resource` линкует манифест Common-Controls и в тесты (B-29) |
 
 ## 9. Что осталось незакрытым
 
 | Область | Проблема | Где решать |
 |---|---|---|
-| Проверки | Rust/UI-тесты, fmt, clippy, `ipc:check`, arch-check зелёные; в CI run 42154029664 всё зелёное, покрытие 93.68 %; локально покрытие не измеримо на Windows-GNU | — (в CI измерено) |
-| CI | Remote public, защита `main` включена: `rust`, `coverage`, `ui`, `ipc-contracts`, `strict=true`, `enforce_admins=true` | — (закрыто 2026-11-06) |
-| T-0103 | Закрыта 2026-11-06: запись `visual/theme-switch-240fps.mp4` (1920×1080, 240 fps CFR, 1200 кадров, 0 белых кадров); 70 UI-тестов; внешних запросов 0 | P2-follow-ups: живой WebView2, холодный старт/системная тема (ST-0103-02), IPC/SQLite-синхронизация (D-20) |
-| T-0102 | AC-2 (CI) и AC-4 (CDP: `ipc probe.echo 0ms ok`) подтверждены 2026-11-06; `InvokeMap` пуст до P2; `zod` отложен; round-trip/tsc-AC подзадач — с первой командой в P2 | D-18; P2 |
+| Проверки | Rust/UI-тесты, fmt, clippy, `ipc:check`, arch-check зелёные; run 42156600633 (`main`) зелёный, покрытие 93.68 %; локально покрытие не измеримо на Windows-GNU | — (в CI измерено) |
+| CI | Remote public, защита `main` включена: `rust`, `coverage`, `ui`, `ipc-contracts`, `strict=true`, `enforce_admins=true`; джоба `desktop` (windows-latest) впервые зелёная в PR #2 (run 43697165125), но пока не обязательна | Добавить `desktop` в обязательные проверки после merge |
+| T-0103 | Закрыта 2026-11-06; P2-follow-ups: живой WebView2, холодный старт/системная тема (ST-0103-02), IPC/SQLite-синхронизация (D-20) | ST-0103-02 |
+| T-0201 | Закрыта 2026-11-15; отклонения D-21…D-27 (меню трея, тост, имя события, `transparent: false`, CLI-флаги, Windows CI, dev/prod-режим UI) | T-0202…T-0205 |
 | D-14 | Неизвестный `kind` маскируется под `Widget` | `ST-0302-01` |
 | Замеры | `bench/` и NFR-скрипты отсутствуют | `T-0802` (P8) |
-| CI-конфиг | **проверено 2026-11-06**: run 42154029664, все 4 job'а success | — |
 
 ## 10. Ближайший разумный порядок действий
 
-1. **Начать P2**: `T-0201` — подключить Tauri в `apps/desktop`, окно 800×600.
-   Сначала открыть README этапа `02-shell` и ТЗ задачи, не работать по памяти.
-2. **T-0102, P2-часть**: заполнить `InvokeMap` вместе с первой реальной
-   командой; проверить round-trip типов и tsc-падение у потребителя; `zod` —
-   только вместе с транспортом (D-18).
-3. **T-0103 P2-follow-ups**: живой WebView2, холодный старт и реальное
+1. **T-0202** — поверхность A: WorkerW, геометрия/DPI, восстановление после
+   Explorer. Сначала открыть README этапа `02-shell` и ТЗ задачи.
+2. **T-0203** — поверхность B: прозрачность, hit-regions, режимы ввода; можно
+   параллельно с T-0202.
+3. **T-0204/T-0205** — автозапуск и питание; поверхность C и глобальные
+   хоткеи (включая `Ctrl+Alt+Q`).
+4. **T-0103 P2-follow-ups**: живой WebView2, холодный старт и реальное
    событие смены системной темы, IPC/SQLite-синхронизация (`app.theme_changed`,
    D-20).
-4. **D-14** (`ElementKind::Unknown`) решать в `ST-0302-01`, а не «на будущее».
-5. **`bench/`** делать в T-0802 (P8), не в P1.
+5. **D-14** (`ElementKind::Unknown`) решать в `ST-0302-01`, а не «на будущее».
+6. **`bench/`** делать в T-0802 (P8).
 
 ## 11. Открытые вопросы плана
 

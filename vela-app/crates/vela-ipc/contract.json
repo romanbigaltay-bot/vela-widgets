@@ -7,6 +7,9 @@
     "ErrorCode.ts",
     "MonitorId.ts",
     "ProfileId.ts",
+    "SurfaceKind.ts",
+    "SurfaceState.ts",
+    "SurfaceStatus.ts",
     "VelaError.ts",
     "WidgetId.ts"
   ],
